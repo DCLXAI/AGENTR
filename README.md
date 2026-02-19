@@ -15,6 +15,7 @@
 - FastAPI `POST /v1/tools/track-delivery`
 - FastAPI `POST /v1/infra/sentry-test`
 - FastAPI `GET /ready` (의존성 readiness)
+- FastAPI `GET /static/faq_widget.js` (쇼핑몰 임베드 위젯)
 - Streamlit 관리자 콘솔
 - Render API/Console 분리 배포
 - CORS allowlist, request-id, Sentry 기반 관측
@@ -120,3 +121,4 @@ API_BASE_URL=https://agentr-fz0i.onrender.com bash scripts/demo_public.sh
 - Render 배포 파이프라인은 staging 스모크 성공 시에만 prod 배포를 진행합니다.
 - 운영 문서: `docs/infra-runbook.md`, `docs/release-checklist.md`
 - 데모 문서: `docs/public-demo-playbook.md`
+- 쇼핑몰 임베드 문서: `docs/cafe24-faq-widget.md`
