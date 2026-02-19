@@ -22,20 +22,48 @@ jobs:
       - name: Trigger API deploy (staging)
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK_STAGING }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_API_SERVICE_ID_STAGING }}
         run: |
-          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_API_DEPLOY_HOOK_STAGING" >&2; exit 1)
-          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_API_DEPLOY_HOOK_STAGING must be full https URL" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_staging.json
-          echo "api_staging_hook_triggered=true"
+          if [[ -n "${RENDER_DEPLOY_HOOK:-}" ]]; then
+            [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_API_DEPLOY_HOOK_STAGING must be full https URL" >&2; exit 1)
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_staging.json
+            echo "api_staging_hook_triggered=true"
+          elif [[ -n "${RENDER_API_KEY:-}" && -n "${RENDER_SERVICE_ID:-}" ]]; then
+            [[ "$RENDER_SERVICE_ID" =~ ^srv- ]] || (echo "RENDER_API_SERVICE_ID_STAGING must start with srv-" >&2; exit 1)
+            curl -fsS \
+              -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+              -H "Content-Type: application/json" \
+              > /tmp/render_api_staging.json
+            echo "api_staging_service_deploy_triggered=true"
+          else
+            echo "Set either RENDER_API_DEPLOY_HOOK_STAGING or (RENDER_API_KEY + RENDER_API_SERVICE_ID_STAGING)." >&2
+            exit 1
+          fi
 
       - name: Trigger Console deploy (staging)
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_CONSOLE_DEPLOY_HOOK_STAGING }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_CONSOLE_SERVICE_ID_STAGING }}
         run: |
-          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_CONSOLE_DEPLOY_HOOK_STAGING" >&2; exit 1)
-          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_CONSOLE_DEPLOY_HOOK_STAGING must be full https URL" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_staging.json
-          echo "console_staging_hook_triggered=true"
+          if [[ -n "${RENDER_DEPLOY_HOOK:-}" ]]; then
+            [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_CONSOLE_DEPLOY_HOOK_STAGING must be full https URL" >&2; exit 1)
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_staging.json
+            echo "console_staging_hook_triggered=true"
+          elif [[ -n "${RENDER_API_KEY:-}" && -n "${RENDER_SERVICE_ID:-}" ]]; then
+            [[ "$RENDER_SERVICE_ID" =~ ^srv- ]] || (echo "RENDER_CONSOLE_SERVICE_ID_STAGING must start with srv-" >&2; exit 1)
+            curl -fsS \
+              -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+              -H "Content-Type: application/json" \
+              > /tmp/render_console_staging.json
+            echo "console_staging_service_deploy_triggered=true"
+          else
+            echo "Set either RENDER_CONSOLE_DEPLOY_HOOK_STAGING or (RENDER_API_KEY + RENDER_CONSOLE_SERVICE_ID_STAGING)." >&2
+            exit 1
+          fi
 
       - name: Wait for staging rollout
         run: sleep 75
@@ -84,20 +112,48 @@ jobs:
       - name: Trigger API deploy (prod)
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK_PROD }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_API_SERVICE_ID_PROD }}
         run: |
-          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_API_DEPLOY_HOOK_PROD" >&2; exit 1)
-          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_API_DEPLOY_HOOK_PROD must be full https URL" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_prod.json
-          echo "api_prod_hook_triggered=true"
+          if [[ -n "${RENDER_DEPLOY_HOOK:-}" ]]; then
+            [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_API_DEPLOY_HOOK_PROD must be full https URL" >&2; exit 1)
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_prod.json
+            echo "api_prod_hook_triggered=true"
+          elif [[ -n "${RENDER_API_KEY:-}" && -n "${RENDER_SERVICE_ID:-}" ]]; then
+            [[ "$RENDER_SERVICE_ID" =~ ^srv- ]] || (echo "RENDER_API_SERVICE_ID_PROD must start with srv-" >&2; exit 1)
+            curl -fsS \
+              -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+              -H "Content-Type: application/json" \
+              > /tmp/render_api_prod.json
+            echo "api_prod_service_deploy_triggered=true"
+          else
+            echo "Set either RENDER_API_DEPLOY_HOOK_PROD or (RENDER_API_KEY + RENDER_API_SERVICE_ID_PROD)." >&2
+            exit 1
+          fi
 
       - name: Trigger Console deploy (prod)
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_CONSOLE_DEPLOY_HOOK_PROD }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_CONSOLE_SERVICE_ID_PROD }}
         run: |
-          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_CONSOLE_DEPLOY_HOOK_PROD" >&2; exit 1)
-          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_CONSOLE_DEPLOY_HOOK_PROD must be full https URL" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_prod.json
-          echo "console_prod_hook_triggered=true"
+          if [[ -n "${RENDER_DEPLOY_HOOK:-}" ]]; then
+            [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_CONSOLE_DEPLOY_HOOK_PROD must be full https URL" >&2; exit 1)
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_prod.json
+            echo "console_prod_hook_triggered=true"
+          elif [[ -n "${RENDER_API_KEY:-}" && -n "${RENDER_SERVICE_ID:-}" ]]; then
+            [[ "$RENDER_SERVICE_ID" =~ ^srv- ]] || (echo "RENDER_CONSOLE_SERVICE_ID_PROD must start with srv-" >&2; exit 1)
+            curl -fsS \
+              -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+              -H "Authorization: Bearer ${RENDER_API_KEY}" \
+              -H "Content-Type: application/json" \
+              > /tmp/render_console_prod.json
+            echo "console_prod_service_deploy_triggered=true"
+          else
+            echo "Set either RENDER_CONSOLE_DEPLOY_HOOK_PROD or (RENDER_API_KEY + RENDER_CONSOLE_SERVICE_ID_PROD)." >&2
+            exit 1
+          fi
 
       - name: Wait for prod rollout
         run: sleep 75
