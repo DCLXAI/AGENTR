@@ -11,6 +11,15 @@ SESSION_ID_PREFIX="${SESSION_ID_PREFIX:-smoke}"
 POLICY_TEST_MESSAGE="${POLICY_TEST_MESSAGE:-반품은 수령 후 며칠 이내에 가능하나요?}"
 TRACKING_MISSING_TEST_MESSAGE="${TRACKING_MISSING_TEST_MESSAGE:-운송장번호 없이 배송조회 해줘}"
 
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON_BIN="python"
+else
+  echo "python runtime is required." >&2
+  exit 1
+fi
+
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
@@ -35,7 +44,7 @@ curl_with_retry() {
 }
 
 curl_with_retry "${API_BASE_URL%/}/health" "${tmp_dir}/health.json"
-python - "${tmp_dir}/health.json" <<'PY'
+"${PYTHON_BIN}" - "${tmp_dir}/health.json" <<'PY'
 import json
 import sys
 payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
@@ -44,15 +53,42 @@ if payload.get("status") != "ok":
 print("[smoke] /health ok")
 PY
 
-curl_with_retry "${API_BASE_URL%/}/ready" "${tmp_dir}/ready.json"
-python - "${tmp_dir}/ready.json" <<'PY'
+wait_ready_ok() {
+  local url="$1"
+  local output="$2"
+  local attempts="${3:-20}"
+  local delay="${4:-3}"
+
+  local i
+  for i in $(seq 1 "$attempts"); do
+    if curl -fsS "${CURL_TIMEOUT_ARGS[@]}" "$url" > "$output"; then
+      if "${PYTHON_BIN}" - "$output" <<'PY'
 import json
 import sys
 payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
-if payload.get("status") != "ok":
-    raise SystemExit(f"/ready failed: {payload}")
-print("[smoke] /ready ok")
+raise SystemExit(0 if payload.get("status") == "ok" else 1)
 PY
+      then
+        echo "[smoke] /ready ok"
+        return 0
+      fi
+    fi
+    sleep "$delay"
+  done
+  echo "[smoke] /ready did not reach status=ok within retries" >&2
+  "${PYTHON_BIN}" - "$output" <<'PY'
+import json
+import sys
+try:
+    payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+except Exception:
+    payload = {"status": "unknown"}
+print(payload)
+PY
+  return 1
+}
+
+wait_ready_ok "${API_BASE_URL%/}/ready" "${tmp_dir}/ready.json"
 
 post_chat() {
   local message="$1"
@@ -60,7 +96,7 @@ post_chat() {
   local session_id="$3"
 
   local payload
-  payload="$(python - "$TENANT_ID" "$session_id" "$message" <<'PY'
+  payload="$("${PYTHON_BIN}" - "$TENANT_ID" "$session_id" "$message" <<'PY'
 import json
 import sys
 tenant_id = sys.argv[1]
@@ -105,7 +141,7 @@ post_chat \
   "policy" \
   "${SESSION_ID_PREFIX}-policy-$(date +%s)"
 
-python - "${tmp_dir}/policy.json" <<'PY'
+"${PYTHON_BIN}" - "${tmp_dir}/policy.json" <<'PY'
 import json
 import sys
 payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
@@ -124,7 +160,7 @@ post_chat \
   "tracking_missing" \
   "${SESSION_ID_PREFIX}-tracking-$(date +%s)"
 
-python - "${tmp_dir}/tracking_missing.json" <<'PY'
+"${PYTHON_BIN}" - "${tmp_dir}/tracking_missing.json" <<'PY'
 import json
 import sys
 payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
