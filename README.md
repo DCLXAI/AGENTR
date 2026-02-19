@@ -16,7 +16,7 @@
 - FastAPI `POST /v1/infra/sentry-test`
 - FastAPI `GET /ready` (의존성 readiness)
 - Streamlit 관리자 콘솔
-- Railway API/Console 분리 배포
+- Render API/Console 분리 배포
 - CORS allowlist, request-id, Sentry 기반 관측
 
 ## 실행
@@ -71,25 +71,35 @@ python -m app.analytics.fallback_insights --limit 5 --samples 5
 SUPABASE_DB_URL=postgresql://... python scripts/check_schema.py
 ```
 
-## Railway 배포
-1. API 서비스
+## Render 배포
+1. Blueprint
+- 파일: `render.yaml`
+- 서비스: `shop-ai-api`, `shop-ai-console`
+
+2. API 서비스
 - Dockerfile: `Dockerfile.api`
 - Start command: `/app/scripts/start_api.sh`
-- Config: `railway/api.railway.toml`
+- Health check: `/health`
 
-2. Console 서비스
+3. Console 서비스
 - Dockerfile: `Dockerfile.console`
 - Start command: `/app/scripts/start_console.sh`
-- Config: `railway/console.railway.toml`
 
-3. 필수 환경변수
+4. 필수 환경변수
 - API: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `PINECONE_*`, `SUPABASE_*`, `TOKEN_ENCRYPTION_KEY`, `CORS_ALLOWED_ORIGINS`, `SWEETTRACKER_API_KEY`(또는 `DELIVERYAPI_KEY`)
 - API(운영): `SENTRY_DSN`, `INFRA_TEST_TOKEN`
 - `PINECONE_INDEX_HOST`를 설정하면 ingest/ready에서 제어 플레인 DNS 이슈를 우회할 수 있습니다.
 - `CREWAI_REVIEW_ENABLED=false`가 기본이며, `true`로 켜면 LLM 검수 워커를 활성화합니다.
 - `EMBEDDING_PROVIDER=gemini`로 두면 OpenAI quota 없이도 벡터 적재를 진행할 수 있습니다.
 - Console: `API_BASE_URL`
-- CI Secret: `RAILWAY_TOKEN`, `RAILWAY_API_SERVICE_STAGING`, `RAILWAY_CONSOLE_SERVICE_STAGING`, `RAILWAY_API_SERVICE_PROD`, `RAILWAY_CONSOLE_SERVICE_PROD`, `API_BASE_URL_STAGING`, `API_BASE_URL_PROD`, `INFRA_TEST_TOKEN_STAGING`, `INFRA_TEST_TOKEN_PROD`
+
+5. CI Secret
+- `RENDER_API_DEPLOY_HOOK_STAGING`
+- `RENDER_CONSOLE_DEPLOY_HOOK_STAGING`
+- `RENDER_API_DEPLOY_HOOK_PROD`
+- `RENDER_CONSOLE_DEPLOY_HOOK_PROD`
+- `API_BASE_URL_STAGING`, `API_BASE_URL_PROD`
+- `INFRA_TEST_TOKEN_STAGING`, `INFRA_TEST_TOKEN_PROD`
 
 ## 데이터 계약
 - FAQ: `data/gold/faq/qa.csv`
@@ -101,5 +111,5 @@ SUPABASE_DB_URL=postgresql://... python scripts/check_schema.py
 - 운영 질의의 색인 대상은 Markdown 문서만 사용합니다.
 - 카페24 refresh token은 반드시 DB 암호화 저장 방식만 사용해야 합니다.
 - `POST /v1/chat/query` 응답에 `why_fallback`과 `tracking_progress`가 추가됩니다.
-- 배포 파이프라인은 staging 스모크 성공 시에만 prod 배포를 진행합니다.
+- Render 배포 파이프라인은 staging 스모크 성공 시에만 prod 배포를 진행합니다.
 - 운영 문서: `docs/infra-runbook.md`, `docs/release-checklist.md`

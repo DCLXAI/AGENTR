@@ -3,7 +3,7 @@
 ## 1. 서비스 구성
 - API 서비스: `shop-ai-api` (FastAPI)
 - Console 서비스: `shop-ai-console` (Streamlit)
-- 배포: Railway (staging -> prod 순차 배포)
+- 배포: Render (staging -> prod 순차 배포)
 
 ## 2. 필수 환경변수
 - API
@@ -19,11 +19,19 @@
   - `API_BASE_URL`
 
 ## 3. 배포 시퀀스
-1. staging API/Console 배포
+1. staging API/Console Render Deploy Hook 트리거
 2. `bash scripts/smoke_e2e.sh`로 staging 검증
 3. `POST /v1/infra/sentry-test` 호출 후 `event_id` 확보
-4. staging 통과 시 prod API/Console 배포
+4. staging 통과 시 prod API/Console Deploy Hook 트리거
 5. prod 동일 검증 반복
+
+## 3-1. GitHub Actions Secrets
+- `RENDER_API_DEPLOY_HOOK_STAGING`
+- `RENDER_CONSOLE_DEPLOY_HOOK_STAGING`
+- `RENDER_API_DEPLOY_HOOK_PROD`
+- `RENDER_CONSOLE_DEPLOY_HOOK_PROD`
+- `API_BASE_URL_STAGING`, `API_BASE_URL_PROD`
+- `INFRA_TEST_TOKEN_STAGING`, `INFRA_TEST_TOKEN_PROD`
 
 ## 4. 스모크 기준
 1. `GET /health` -> 200 + `{"status":"ok"}`

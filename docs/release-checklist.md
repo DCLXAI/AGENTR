@@ -9,12 +9,12 @@
 - [ ] `scripts/check_schema.py` 통과
 
 ## Deploy (Staging -> Prod)
-- [ ] staging API 서비스 Railway 배포
-- [ ] staging Console 서비스 Railway 배포
+- [ ] staging API 서비스 Render Deploy Hook 호출
+- [ ] staging Console 서비스 Render Deploy Hook 호출
 - [ ] staging `bash scripts/smoke_e2e.sh` 통과
 - [ ] staging `POST /v1/infra/sentry-test` 성공 (`event_id` 기록)
-- [ ] prod API 서비스 Railway 배포
-- [ ] prod Console 서비스 Railway 배포
+- [ ] prod API 서비스 Render Deploy Hook 호출
+- [ ] prod Console 서비스 Render Deploy Hook 호출
 - [ ] prod `bash scripts/smoke_e2e.sh` 통과
 - [ ] prod `POST /v1/infra/sentry-test` 성공 (`event_id` 기록)
 - [ ] 배포 로그에 에러 없음

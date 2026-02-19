@@ -1,6 +1,9 @@
-name: Deploy Railway (Manual)
+name: Deploy Render
 
 on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,44 +19,24 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy API (staging)
+      - name: Trigger API deploy (staging)
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE_STAGING }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_STAGING }}
-          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_STAGING }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK_STAGING }}
         run: |
-          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
-          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_API_SERVICE_STAGING" >&2; exit 1)
-          args=(up --service "$RAILWAY_SERVICE" --detach)
-          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
-            args+=(--project "$RAILWAY_PROJECT_ID")
-          fi
-          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
-            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
-          fi
-          railway "${args[@]}"
+          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_API_DEPLOY_HOOK_STAGING" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_staging.json || true
+          echo "api_staging_hook_triggered=true"
 
-      - name: Deploy Console (staging)
+      - name: Trigger Console deploy (staging)
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ secrets.RAILWAY_CONSOLE_SERVICE_STAGING }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_STAGING }}
-          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_STAGING }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_CONSOLE_DEPLOY_HOOK_STAGING }}
         run: |
-          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
-          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_CONSOLE_SERVICE_STAGING" >&2; exit 1)
-          args=(up --service "$RAILWAY_SERVICE" --detach)
-          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
-            args+=(--project "$RAILWAY_PROJECT_ID")
-          fi
-          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
-            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
-          fi
-          railway "${args[@]}"
+          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_CONSOLE_DEPLOY_HOOK_STAGING" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_staging.json || true
+          echo "console_staging_hook_triggered=true"
+
+      - name: Wait for staging rollout
+        run: sleep 75
 
       - name: Staging smoke E2E
         env:
@@ -96,44 +79,24 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy API (prod)
+      - name: Trigger API deploy (prod)
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE_PROD }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_PROD }}
-          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_PROD }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK_PROD }}
         run: |
-          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
-          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_API_SERVICE_PROD" >&2; exit 1)
-          args=(up --service "$RAILWAY_SERVICE" --detach)
-          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
-            args+=(--project "$RAILWAY_PROJECT_ID")
-          fi
-          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
-            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
-          fi
-          railway "${args[@]}"
+          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_API_DEPLOY_HOOK_PROD" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_prod.json || true
+          echo "api_prod_hook_triggered=true"
 
-      - name: Deploy Console (prod)
+      - name: Trigger Console deploy (prod)
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ secrets.RAILWAY_CONSOLE_SERVICE_PROD }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_PROD }}
-          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_PROD }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_CONSOLE_DEPLOY_HOOK_PROD }}
         run: |
-          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
-          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_CONSOLE_SERVICE_PROD" >&2; exit 1)
-          args=(up --service "$RAILWAY_SERVICE" --detach)
-          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
-            args+=(--project "$RAILWAY_PROJECT_ID")
-          fi
-          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
-            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
-          fi
-          railway "${args[@]}"
+          test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_CONSOLE_DEPLOY_HOOK_PROD" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_prod.json || true
+          echo "console_prod_hook_triggered=true"
+
+      - name: Wait for prod rollout
+        run: sleep 75
 
       - name: Prod smoke E2E
         env:

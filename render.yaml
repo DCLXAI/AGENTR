@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: shop-ai-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.api
+    dockerContext: .
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: api
+      - key: APP_ENV
+        value: prod
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX
+        sync: false
+      - key: PINECONE_CLOUD
+        sync: false
+      - key: PINECONE_REGION
+        sync: false
+      - key: DELIVERYAPI_KEY
+        sync: false
+      - key: DELIVERYAPI_SECRET
+        sync: false
+      - key: SWEETTRACKER_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: INFRA_TEST_TOKEN
+        sync: false
+
+  - type: web
+    name: shop-ai-console
+    runtime: docker
+    dockerfilePath: ./Dockerfile.console
+    dockerContext: .
+    autoDeploy: true
+    envVars:
+      - key: SERVICE_NAME
+        value: console
+      - key: APP_ENV
+        value: prod
+      - key: API_BASE_URL
+        sync: false
