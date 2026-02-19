@@ -26,13 +26,37 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE_STAGING }}
-        run: railway up --service "$RAILWAY_SERVICE" --detach
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_STAGING }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_STAGING }}
+        run: |
+          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
+          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_API_SERVICE_STAGING" >&2; exit 1)
+          args=(up --service "$RAILWAY_SERVICE" --detach)
+          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
+            args+=(--project "$RAILWAY_PROJECT_ID")
+          fi
+          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
+            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
+          fi
+          railway "${args[@]}"
 
       - name: Deploy Console (staging)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE: ${{ secrets.RAILWAY_CONSOLE_SERVICE_STAGING }}
-        run: railway up --service "$RAILWAY_SERVICE" --detach
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_STAGING }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_STAGING }}
+        run: |
+          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
+          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_CONSOLE_SERVICE_STAGING" >&2; exit 1)
+          args=(up --service "$RAILWAY_SERVICE" --detach)
+          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
+            args+=(--project "$RAILWAY_PROJECT_ID")
+          fi
+          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
+            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
+          fi
+          railway "${args[@]}"
 
       - name: Staging smoke E2E
         env:
@@ -82,13 +106,37 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE_PROD }}
-        run: railway up --service "$RAILWAY_SERVICE" --detach
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_PROD }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_PROD }}
+        run: |
+          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
+          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_API_SERVICE_PROD" >&2; exit 1)
+          args=(up --service "$RAILWAY_SERVICE" --detach)
+          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
+            args+=(--project "$RAILWAY_PROJECT_ID")
+          fi
+          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
+            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
+          fi
+          railway "${args[@]}"
 
       - name: Deploy Console (prod)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE: ${{ secrets.RAILWAY_CONSOLE_SERVICE_PROD }}
-        run: railway up --service "$RAILWAY_SERVICE" --detach
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_PROD }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_PROD }}
+        run: |
+          test -n "$RAILWAY_TOKEN" || (echo "Missing secret RAILWAY_TOKEN" >&2; exit 1)
+          test -n "$RAILWAY_SERVICE" || (echo "Missing secret RAILWAY_CONSOLE_SERVICE_PROD" >&2; exit 1)
+          args=(up --service "$RAILWAY_SERVICE" --detach)
+          if [[ -n "${RAILWAY_PROJECT_ID:-}" ]]; then
+            args+=(--project "$RAILWAY_PROJECT_ID")
+          fi
+          if [[ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]]; then
+            args+=(--environment "$RAILWAY_ENVIRONMENT_ID")
+          fi
+          railway "${args[@]}"
 
       - name: Prod smoke E2E
         env:
