@@ -71,6 +71,11 @@ python -m app.analytics.fallback_insights --limit 5 --samples 5
 SUPABASE_DB_URL=postgresql://... python scripts/check_schema.py
 ```
 
+11. 공개 데모 리허설(선택)
+```bash
+API_BASE_URL=https://agentr-fz0i.onrender.com bash scripts/demo_public.sh
+```
+
 ## Render 배포
 1. Blueprint
 - 파일: `render.yaml`
@@ -114,3 +119,4 @@ SUPABASE_DB_URL=postgresql://... python scripts/check_schema.py
 - `POST /v1/chat/query` 응답에 `why_fallback`과 `tracking_progress`가 추가됩니다.
 - Render 배포 파이프라인은 staging 스모크 성공 시에만 prod 배포를 진행합니다.
 - 운영 문서: `docs/infra-runbook.md`, `docs/release-checklist.md`
+- 데모 문서: `docs/public-demo-playbook.md`
