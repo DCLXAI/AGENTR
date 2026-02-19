@@ -15,6 +15,7 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 echo "[smoke] API_BASE_URL=${API_BASE_URL}"
+CURL_TIMEOUT_ARGS=(--connect-timeout 5 --max-time 20)
 
 curl_with_retry() {
   local url="$1"
@@ -24,7 +25,7 @@ curl_with_retry() {
 
   local i
   for i in $(seq 1 "$attempts"); do
-    if curl -fsS "$url" > "$output"; then
+    if curl -fsS "${CURL_TIMEOUT_ARGS[@]}" "$url" > "$output"; then
       return 0
     fi
     sleep "$delay"
@@ -75,7 +76,7 @@ PY
 
   local i
   for i in $(seq 1 6); do
-    if curl -fsS \
+    if curl -fsS "${CURL_TIMEOUT_ARGS[@]}" \
       -D "${tmp_dir}/${out_prefix}.headers" \
       -o "${tmp_dir}/${out_prefix}.json" \
       -X POST "${API_BASE_URL%/}/v1/chat/query" \
