@@ -24,7 +24,8 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK_STAGING }}
         run: |
           test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_API_DEPLOY_HOOK_STAGING" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_staging.json || true
+          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_API_DEPLOY_HOOK_STAGING must be full https URL" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_staging.json
           echo "api_staging_hook_triggered=true"
 
       - name: Trigger Console deploy (staging)
@@ -32,7 +33,8 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_CONSOLE_DEPLOY_HOOK_STAGING }}
         run: |
           test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_CONSOLE_DEPLOY_HOOK_STAGING" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_staging.json || true
+          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_CONSOLE_DEPLOY_HOOK_STAGING must be full https URL" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_staging.json
           echo "console_staging_hook_triggered=true"
 
       - name: Wait for staging rollout
@@ -84,7 +86,8 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK_PROD }}
         run: |
           test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_API_DEPLOY_HOOK_PROD" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_prod.json || true
+          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_API_DEPLOY_HOOK_PROD must be full https URL" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_api_prod.json
           echo "api_prod_hook_triggered=true"
 
       - name: Trigger Console deploy (prod)
@@ -92,7 +95,8 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_CONSOLE_DEPLOY_HOOK_PROD }}
         run: |
           test -n "$RENDER_DEPLOY_HOOK" || (echo "Missing secret RENDER_CONSOLE_DEPLOY_HOOK_PROD" >&2; exit 1)
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_prod.json || true
+          [[ "$RENDER_DEPLOY_HOOK" =~ ^https:// ]] || (echo "RENDER_CONSOLE_DEPLOY_HOOK_PROD must be full https URL" >&2; exit 1)
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /tmp/render_console_prod.json
           echo "console_prod_hook_triggered=true"
 
       - name: Wait for prod rollout
