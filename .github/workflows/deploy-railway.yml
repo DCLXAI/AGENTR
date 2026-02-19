@@ -1,0 +1,123 @@
+name: Deploy Railway
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-staging:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy API (staging)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE_STAGING }}
+        run: railway up --service "$RAILWAY_SERVICE" --detach
+
+      - name: Deploy Console (staging)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_CONSOLE_SERVICE_STAGING }}
+        run: railway up --service "$RAILWAY_SERVICE" --detach
+
+      - name: Staging smoke E2E
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL_STAGING }}
+          TENANT_ID: tenant-demo
+          SESSION_ID_PREFIX: staging-smoke
+        run: bash scripts/smoke_e2e.sh
+
+      - name: Staging Sentry test event
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL_STAGING }}
+          INFRA_TEST_TOKEN: ${{ secrets.INFRA_TEST_TOKEN_STAGING }}
+        run: |
+          test -n "$INFRA_TEST_TOKEN" || (echo "Missing secret INFRA_TEST_TOKEN_STAGING" >&2; exit 1)
+          curl -fsS \
+            -X POST "$API_BASE_URL/v1/infra/sentry-test" \
+            -H "content-type: application/json" \
+            -H "x-infra-test-token: $INFRA_TEST_TOKEN" \
+            --data '{"message":"staging sentry smoke event","level":"error"}' \
+            > /tmp/sentry_staging.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          body = json.loads(Path("/tmp/sentry_staging.json").read_text(encoding="utf-8"))
+          event_id = str(body.get("event_id", "")).strip()
+          if not event_id:
+              raise SystemExit("Missing event_id in staging sentry-test response")
+          print(f"staging_event_id={event_id}")
+          Path("/tmp/staging_event_id.txt").write_text(event_id, encoding="utf-8")
+          PY
+          echo "### Staging Sentry Event" >> "$GITHUB_STEP_SUMMARY"
+          echo "- event_id: \`$(cat /tmp/staging_event_id.txt)\`" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-prod:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy API (prod)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_API_SERVICE_PROD }}
+        run: railway up --service "$RAILWAY_SERVICE" --detach
+
+      - name: Deploy Console (prod)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_CONSOLE_SERVICE_PROD }}
+        run: railway up --service "$RAILWAY_SERVICE" --detach
+
+      - name: Prod smoke E2E
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL_PROD }}
+          TENANT_ID: tenant-demo
+          SESSION_ID_PREFIX: prod-smoke
+        run: bash scripts/smoke_e2e.sh
+
+      - name: Prod Sentry test event
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL_PROD }}
+          INFRA_TEST_TOKEN: ${{ secrets.INFRA_TEST_TOKEN_PROD }}
+        run: |
+          test -n "$INFRA_TEST_TOKEN" || (echo "Missing secret INFRA_TEST_TOKEN_PROD" >&2; exit 1)
+          curl -fsS \
+            -X POST "$API_BASE_URL/v1/infra/sentry-test" \
+            -H "content-type: application/json" \
+            -H "x-infra-test-token: $INFRA_TEST_TOKEN" \
+            --data '{"message":"prod sentry smoke event","level":"error"}' \
+            > /tmp/sentry_prod.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          body = json.loads(Path("/tmp/sentry_prod.json").read_text(encoding="utf-8"))
+          event_id = str(body.get("event_id", "")).strip()
+          if not event_id:
+              raise SystemExit("Missing event_id in prod sentry-test response")
+          print(f"prod_event_id={event_id}")
+          Path("/tmp/prod_event_id.txt").write_text(event_id, encoding="utf-8")
+          PY
+          echo "### Prod Sentry Event" >> "$GITHUB_STEP_SUMMARY"
+          echo "- event_id: \`$(cat /tmp/prod_event_id.txt)\`" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,2 @@
+"""Shop AI application package."""
+

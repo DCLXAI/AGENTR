@@ -1,0 +1,251 @@
+question,answer,category,priority,last_updated,seed_question,seed_question_hash,paraphrase_rank,is_paraphrase,generation_model
+배송 기간은 어느 정도 소요되나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요?,b98e19eeafa0968e87195b59dd769599c7950254,1,True,gemini-paraphraser
+상품 배송은 며칠 안에 받을 수 있나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요?,b98e19eeafa0968e87195b59dd769599c7950254,2,True,gemini-paraphraser
+배송 완료까지 시간이 얼마나 걸릴까요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요?,b98e19eeafa0968e87195b59dd769599c7950254,3,True,gemini-paraphraser
+주문한 상품은 언제쯤 배송되나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요?,b98e19eeafa0968e87195b59dd769599c7950254,4,True,gemini-paraphraser
+배송 예상 소요 시간을 알려주세요.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요?,b98e19eeafa0968e87195b59dd769599c7950254,5,True,gemini-paraphraser
+무료 배송은 얼마 이상 구매해야 적용되나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요?,4f9f65a7a65d346d852f47fde092db58861dc16d,1,True,gemini-paraphraser
+배송비가 무료로 되는 조건이 궁금합니다.,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요?,4f9f65a7a65d346d852f47fde092db58861dc16d,2,True,gemini-paraphraser
+어느 정도 금액을 사야 무료로 배송되나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요?,4f9f65a7a65d346d852f47fde092db58861dc16d,3,True,gemini-paraphraser
+무료 배송을 받으려면 최소 구매 금액이 얼마인가요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요?,4f9f65a7a65d346d852f47fde092db58861dc16d,4,True,gemini-paraphraser
+배송비 무료 혜택을 받기 위한 기준이 있나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요?,4f9f65a7a65d346d852f47fde092db58861dc16d,5,True,gemini-paraphraser
+제주도나 도서 지역은 배송비가 더 붙나요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요?,dec48a47b28eed5bf727b8ce2eb36afdf3ca82da,1,True,gemini-paraphraser
+제주 및 도서산간 지역으로 배송 시 추가 요금이 있나요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요?,dec48a47b28eed5bf727b8ce2eb36afdf3ca82da,2,True,gemini-paraphraser
+섬이나 산간 지역으로 배송 받으려면 배송비가 추가되나요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요?,dec48a47b28eed5bf727b8ce2eb36afdf3ca82da,3,True,gemini-paraphraser
+제주도나 섬 지역은 배송비가 더 비싼가요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요?,dec48a47b28eed5bf727b8ce2eb36afdf3ca82da,4,True,gemini-paraphraser
+제주/도서산간 지역 배송 시 배송비가 더 부과되는지 궁금합니다.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요?,dec48a47b28eed5bf727b8ce2eb36afdf3ca82da,5,True,gemini-paraphraser
+반품 신청은 언제까지 가능한가요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요?,6d2bf23ac7dbcb6eca2eab9cc097182b0a0265f6,1,True,gemini-paraphraser
+제품 반환은 언제까지 신청해야 하나요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요?,6d2bf23ac7dbcb6eca2eab9cc097182b0a0265f6,2,True,gemini-paraphraser
+반품 접수 기한이 궁금합니다.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요?,6d2bf23ac7dbcb6eca2eab9cc097182b0a0265f6,3,True,gemini-paraphraser
+물건을 반품하려면 며칠 안에 신청해야 하나요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요?,6d2bf23ac7dbcb6eca2eab9cc097182b0a0265f6,4,True,gemini-paraphraser
+반품 신청은 구매 후 며칠 이내에 해야 하나요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요?,6d2bf23ac7dbcb6eca2eab9cc097182b0a0265f6,5,True,gemini-paraphraser
+교환할 때 배송비는 얼마를 내야 하나요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요?,ec63bd3f24afb7af163dd3fee39cb7ee0fa45fc2,1,True,gemini-paraphraser
+교환 시 배송비가 궁금합니다.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요?,ec63bd3f24afb7af163dd3fee39cb7ee0fa45fc2,2,True,gemini-paraphraser
+교환 배송료는 얼마인가요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요?,ec63bd3f24afb7af163dd3fee39cb7ee0fa45fc2,3,True,gemini-paraphraser
+교환할 때 배송 비용이 얼마나 드나요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요?,ec63bd3f24afb7af163dd3fee39cb7ee0fa45fc2,4,True,gemini-paraphraser
+교환에 필요한 배송비는 얼마인가요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요?,ec63bd3f24afb7af163dd3fee39cb7ee0fa45fc2,5,True,gemini-paraphraser
+제품에 하자가 있어요.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요.,388bbad7c1054fe2ed3cf240561e32e87c095d97,1,True,gemini-paraphraser
+주문한 상품이 불량이에요.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요.,388bbad7c1054fe2ed3cf240561e32e87c095d97,2,True,gemini-paraphraser
+물건 상태가 좋지 않아요.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요.,388bbad7c1054fe2ed3cf240561e32e87c095d97,3,True,gemini-paraphraser
+정상적인 제품이 아닌 것 같아요.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요.,388bbad7c1054fe2ed3cf240561e32e87c095d97,4,True,gemini-paraphraser
+받은 상품에 문제가 있습니다.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요.,388bbad7c1054fe2ed3cf240561e32e87c095d97,5,True,gemini-paraphraser
+포인트는 언제 적립되나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요?,8c863e40614abb3d7a2d1b1049681b5118feaafd,1,True,gemini-paraphraser
+마일리지는 언제쯤 받을 수 있나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요?,8c863e40614abb3d7a2d1b1049681b5118feaafd,2,True,gemini-paraphraser
+적립금 지급 시점이 궁금합니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요?,8c863e40614abb3d7a2d1b1049681b5118feaafd,3,True,gemini-paraphraser
+제가 받게 될 적립금은 언제 지급 예정인가요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요?,8c863e40614abb3d7a2d1b1049681b5118feaafd,4,True,gemini-paraphraser
+적립금은 대략 언제쯤 지급되는지 알고 싶습니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요?,8c863e40614abb3d7a2d1b1049681b5118feaafd,5,True,gemini-paraphraser
+적립금은 언제까지 사용할 수 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요?,87b843245fe1495c577d8c11a545ec223085592a,1,True,gemini-paraphraser
+적립금 사용에 기한이 정해져 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요?,87b843245fe1495c577d8c11a545ec223085592a,2,True,gemini-paraphraser
+적립금 소멸 시효가 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요?,87b843245fe1495c577d8c11a545ec223085592a,3,True,gemini-paraphraser
+적립금을 사용할 수 있는 기간이 궁금합니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요?,87b843245fe1495c577d8c11a545ec223085592a,4,True,gemini-paraphraser
+적립금은 기간 제한 없이 계속 사용할 수 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요?,87b843245fe1495c577d8c11a545ec223085592a,5,True,gemini-paraphraser
+주문했던 것을 취소하려면 어떻게 해야 하나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요?,b7e06b29e954da00a32f150d3c6a7bbb0079fbb6,1,True,gemini-paraphraser
+주문 취소 절차를 알고 싶습니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요?,b7e06b29e954da00a32f150d3c6a7bbb0079fbb6,2,True,gemini-paraphraser
+주문한 상품을 취소하는 방법을 알려주세요.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요?,b7e06b29e954da00a32f150d3c6a7bbb0079fbb6,3,True,gemini-paraphraser
+주문 취소는 어떤 방식으로 진행되나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요?,b7e06b29e954da00a32f150d3c6a7bbb0079fbb6,4,True,gemini-paraphraser
+주문 취소는 어디에서 신청할 수 있나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요?,b7e06b29e954da00a32f150d3c6a7bbb0079fbb6,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요.,727ddbb073b543eafcf58c4d9fef4b58e2d02669,1,True,gemini-paraphraser
+어떤 방식으로 세탁하는 것이 좋은가요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요.,727ddbb073b543eafcf58c4d9fef4b58e2d02669,2,True,gemini-paraphraser
+세탁 시 주의해야 할 점이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요.,727ddbb073b543eafcf58c4d9fef4b58e2d02669,3,True,gemini-paraphraser
+세탁 시 권장하는 방법이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요.,727ddbb073b543eafcf58c4d9fef4b58e2d02669,4,True,gemini-paraphraser
+세탁 시 특별히 신경 써야 할 부분이 있을까요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요.,727ddbb073b543eafcf58c4d9fef4b58e2d02669,5,True,gemini-paraphraser
+사이즈를 다른 것으로 바꿀 수 있을까요?,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요?,66165fc727de88843fa70394d7e98f9bf26fedae,1,True,gemini-paraphraser
+사이즈 교체 서비스가 제공되나요?,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요?,66165fc727de88843fa70394d7e98f9bf26fedae,2,True,gemini-paraphraser
+다른 사이즈로 변경하고 싶습니다.,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요?,66165fc727de88843fa70394d7e98f9bf26fedae,3,True,gemini-paraphraser
+사이즈를 바꿔서 받고 싶은데 가능한가요?,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요?,66165fc727de88843fa70394d7e98f9bf26fedae,4,True,gemini-paraphraser
+사이즈가 안 맞아서 교환하고 싶습니다.,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요?,66165fc727de88843fa70394d7e98f9bf26fedae,5,True,gemini-paraphraser
+배송되기 전에 배송지를 바꾸는 것이 가능한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요?,6254714190096b50d566b30afe807e330b148418,1,True,gemini-paraphraser
+"아직 발송 전인데, 수령 주소를 변경할 수 있을까요?",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요?,6254714190096b50d566b30afe807e330b148418,2,True,gemini-paraphraser
+주문한 상품이 출발하기 전에 주소 수정이 가능한지 궁금합니다.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요?,6254714190096b50d566b30afe807e330b148418,3,True,gemini-paraphraser
+배송 시작 전에 배송 주소를 바꾸고 싶습니다. 가능한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요?,6254714190096b50d566b30afe807e330b148418,4,True,gemini-paraphraser
+"아직 상품이 안 떠났는데, 배송받을 곳을 변경할 수 있을까요?",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요?,6254714190096b50d566b30afe807e330b148418,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 알려주세요?,085da724e4e8944b4264115ade12c8f266782493,1,True,gemini-paraphraser
+빨래하는 방법을 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 알려주세요?,085da724e4e8944b4264115ade12c8f266782493,2,True,gemini-paraphraser
+세탁 시 주의사항이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 알려주세요?,085da724e4e8944b4264115ade12c8f266782493,3,True,gemini-paraphraser
+이 옷은 어떻게 세탁해야 하나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 알려주세요?,085da724e4e8944b4264115ade12c8f266782493,4,True,gemini-paraphraser
+세탁 관련 정보를 알려주실 수 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 알려주세요?,085da724e4e8944b4264115ade12c8f266782493,5,True,gemini-paraphraser
+적립금 지급 시점이 궁금합니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 알려주세요?,a20a69b9979854d1056bdf72668292f527fe3101,1,True,gemini-paraphraser
+적립금은 언제쯤 받을 수 있나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 알려주세요?,a20a69b9979854d1056bdf72668292f527fe3101,2,True,gemini-paraphraser
+적립금 지급 일정을 알려주실 수 있나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 알려주세요?,a20a69b9979854d1056bdf72668292f527fe3101,3,True,gemini-paraphraser
+제가 받게 될 적립금은 언제 지급되나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 알려주세요?,a20a69b9979854d1056bdf72668292f527fe3101,4,True,gemini-paraphraser
+적립금은 대략 언제 지급되는지 알고 싶습니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 알려주세요?,a20a69b9979854d1056bdf72668292f527fe3101,5,True,gemini-paraphraser
+"주문했던 것을 취소하고 싶은데, 어떻게 해야 하나요?",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 알려주세요?,72ed7967d40cbe48328a34cc13fc57ed0b1e0b8c,1,True,gemini-paraphraser
+주문 취소 절차에 대해 자세히 알려주실 수 있나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 알려주세요?,72ed7967d40cbe48328a34cc13fc57ed0b1e0b8c,2,True,gemini-paraphraser
+주문한 상품을 취소하려면 어디로 가야 하나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 알려주세요?,72ed7967d40cbe48328a34cc13fc57ed0b1e0b8c,3,True,gemini-paraphraser
+주문 취소하는 방법을 알고 싶습니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 알려주세요?,72ed7967d40cbe48328a34cc13fc57ed0b1e0b8c,4,True,gemini-paraphraser
+주문 취소는 어떻게 진행되는지 안내 부탁드립니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 알려주세요?,72ed7967d40cbe48328a34cc13fc57ed0b1e0b8c,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요? 자세한 방법을 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 확인 부탁드려요.,1336aa58e21c2a6fc31a69b2423f8e8360510f51,1,True,gemini-paraphraser
+"이 제품, 세탁 시 주의해야 할 점이 있나요?",상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 확인 부탁드려요.,1336aa58e21c2a6fc31a69b2423f8e8360510f51,2,True,gemini-paraphraser
+세탁 시 권장하는 방법이 있다면 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 확인 부탁드려요.,1336aa58e21c2a6fc31a69b2423f8e8360510f51,3,True,gemini-paraphraser
+세탁 관련 정보를 확인하고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 확인 부탁드려요.,1336aa58e21c2a6fc31a69b2423f8e8360510f51,4,True,gemini-paraphraser
+세탁할 때 특별히 신경 써야 하는 부분이 있는지 궁금합니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 확인 부탁드려요.,1336aa58e21c2a6fc31a69b2423f8e8360510f51,5,True,gemini-paraphraser
+적립금은 언제까지 사용할 수 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 알려주세요?,940ae0e8a5565c1be3a011f7a9a1d8bf6b958cb5,1,True,gemini-paraphraser
+적립금 사용 기한이 정해져 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 알려주세요?,940ae0e8a5565c1be3a011f7a9a1d8bf6b958cb5,2,True,gemini-paraphraser
+보유 적립금의 만료일이 궁금합니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 알려주세요?,940ae0e8a5565c1be3a011f7a9a1d8bf6b958cb5,3,True,gemini-paraphraser
+적립금은 기간 제한 없이 계속 사용 가능한가요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 알려주세요?,940ae0e8a5565c1be3a011f7a9a1d8bf6b958cb5,4,True,gemini-paraphraser
+적립금 소멸 시효가 있는지 알고 싶습니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 알려주세요?,940ae0e8a5565c1be3a011f7a9a1d8bf6b958cb5,5,True,gemini-paraphraser
+배송되기 전에 배송 주소를 바꿀 수 있는지 궁금합니다.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 알려주세요?,354231d8a467a932f1e77e2864ac1cf086c504db,1,True,gemini-paraphraser
+"아직 발송 전인데, 수령 주소 변경이 가능한가요?",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 알려주세요?,354231d8a467a932f1e77e2864ac1cf086c504db,2,True,gemini-paraphraser
+주문한 상품이 출발하기 전에 주소지를 바꾸고 싶습니다.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 알려주세요?,354231d8a467a932f1e77e2864ac1cf086c504db,3,True,gemini-paraphraser
+배송 시작 전에 주소 변경을 신청할 수 있을까요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 알려주세요?,354231d8a467a932f1e77e2864ac1cf086c504db,4,True,gemini-paraphraser
+출고되기 전 배송지를 수정하고 싶습니다. 가능한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 알려주세요?,354231d8a467a932f1e77e2864ac1cf086c504db,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 맞나요?,1b7803d2068f0cc29860be6a557e15521f021d80,1,True,gemini-paraphraser
+세탁하는 방법이 궁금합니다. 맞습니까?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 맞나요?,1b7803d2068f0cc29860be6a557e15521f021d80,2,True,gemini-paraphraser
+세탁 절차에 대해 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 맞나요?,1b7803d2068f0cc29860be6a557e15521f021d80,3,True,gemini-paraphraser
+세탁 관련 문의입니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 맞나요?,1b7803d2068f0cc29860be6a557e15521f021d80,4,True,gemini-paraphraser
+세탁법을 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 맞나요?,1b7803d2068f0cc29860be6a557e15521f021d80,5,True,gemini-paraphraser
+배송 기간이 얼마나 소요되나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 알려주세요?,9bf7ef3bf9999e2df237fdbd2f122213273cbb64,1,True,gemini-paraphraser
+상품 배송은 며칠 정도 걸릴까요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 알려주세요?,9bf7ef3bf9999e2df237fdbd2f122213273cbb64,2,True,gemini-paraphraser
+배송까지 얼마나 기다려야 하나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 알려주세요?,9bf7ef3bf9999e2df237fdbd2f122213273cbb64,3,True,gemini-paraphraser
+물건 배송은 얼마나 걸리는지 궁금합니다.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 알려주세요?,9bf7ef3bf9999e2df237fdbd2f122213273cbb64,4,True,gemini-paraphraser
+배송에 걸리는 시간을 알려주세요.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 알려주세요?,9bf7ef3bf9999e2df237fdbd2f122213273cbb64,5,True,gemini-paraphraser
+제 적립금 지급 시점이 언제인지 알려주세요.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 확인 부탁드려요.,df40472f5226d51bdc847d9e15abc5161dc53126,1,True,gemini-paraphraser
+적립금은 언제쯤 받을 수 있는지 확인해주실 수 있나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 확인 부탁드려요.,df40472f5226d51bdc847d9e15abc5161dc53126,2,True,gemini-paraphraser
+제가 받아야 할 적립금은 언제 지급될 예정인가요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 확인 부탁드려요.,df40472f5226d51bdc847d9e15abc5161dc53126,3,True,gemini-paraphraser
+적립금 지급 일정을 확인하고 싶습니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 확인 부탁드려요.,df40472f5226d51bdc847d9e15abc5161dc53126,4,True,gemini-paraphraser
+제 계정으로 적립금이 언제 들어오는지 궁금합니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 확인 부탁드려요.,df40472f5226d51bdc847d9e15abc5161dc53126,5,True,gemini-paraphraser
+"주문했던 것을 취소하고 싶은데, 어떻게 해야 하는지 알려주세요.",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 확인 부탁드려요.,5e49be93a7aef1357974c4d4a41dc1209bb9f0f1,1,True,gemini-paraphraser
+주문 취소 절차를 알고 싶습니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 확인 부탁드려요.,5e49be93a7aef1357974c4d4a41dc1209bb9f0f1,2,True,gemini-paraphraser
+주문한 상품을 취소하는 방법을 안내해주세요.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 확인 부탁드려요.,5e49be93a7aef1357974c4d4a41dc1209bb9f0f1,3,True,gemini-paraphraser
+주문 취소는 어떻게 진행되는지 궁금합니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 확인 부탁드려요.,5e49be93a7aef1357974c4d4a41dc1209bb9f0f1,4,True,gemini-paraphraser
+"주문 취소하는 곳을 찾고 있는데, 어디에서 할 수 있나요?",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 확인 부탁드려요.,5e49be93a7aef1357974c4d4a41dc1209bb9f0f1,5,True,gemini-paraphraser
+반품 신청은 언제까지 가능한가요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 알려주세요?,af89e0e5d807c37fa9b4432ba45d450fdc173064,1,True,gemini-paraphraser
+반품 접수 기한이 궁금합니다.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 알려주세요?,af89e0e5d807c37fa9b4432ba45d450fdc173064,2,True,gemini-paraphraser
+제품 반환은 며칠 안에 신청해야 하나요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 알려주세요?,af89e0e5d807c37fa9b4432ba45d450fdc173064,3,True,gemini-paraphraser
+반품을 하려면 며칠 이내에 신청해야 하는지 알려주세요.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 알려주세요?,af89e0e5d807c37fa9b4432ba45d450fdc173064,4,True,gemini-paraphraser
+반품 접수 마감일이 언제인가요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 알려주세요?,af89e0e5d807c37fa9b4432ba45d450fdc173064,5,True,gemini-paraphraser
+올바른 세탁법에 대한 안내가 필요합니다. 세탁 기준을 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준이 궁금해요.,063694ea7feeb8704155f228d2b2b2610fcb3827,1,True,gemini-paraphraser
+세탁 시 지켜야 할 사항이 궁금합니다. 어떤 기준으로 세탁해야 하나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준이 궁금해요.,063694ea7feeb8704155f228d2b2b2610fcb3827,2,True,gemini-paraphraser
+세탁 방법에 대한 정보와 세탁 기준에 대해 자세히 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준이 궁금해요.,063694ea7feeb8704155f228d2b2b2610fcb3827,3,True,gemini-paraphraser
+세탁 시 참고해야 할 사항이 있나요? 세탁 기준에 대해 설명해주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준이 궁금해요.,063694ea7feeb8704155f228d2b2b2610fcb3827,4,True,gemini-paraphraser
+세탁하는 방법과 그 기준에 대해 자세하게 알려주실 수 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준이 궁금해요.,063694ea7feeb8704155f228d2b2b2610fcb3827,5,True,gemini-paraphraser
+무료 배송은 어떤 조건으로 받을 수 있나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 알려주세요?,c98cfb26b0a62ea97afa1bc70592127ae72f90e4,1,True,gemini-paraphraser
+무료 배송을 받기 위한 최소 주문 금액이 있나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 알려주세요?,c98cfb26b0a62ea97afa1bc70592127ae72f90e4,2,True,gemini-paraphraser
+어느 정도 금액 이상 구매해야 무료 배송이 되나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 알려주세요?,c98cfb26b0a62ea97afa1bc70592127ae72f90e4,3,True,gemini-paraphraser
+무료 배송 조건에 대해 자세히 설명해주세요.,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 알려주세요?,c98cfb26b0a62ea97afa1bc70592127ae72f90e4,4,True,gemini-paraphraser
+무료 배송을 위한 주문 금액 기준을 알고 싶습니다.,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 알려주세요?,c98cfb26b0a62ea97afa1bc70592127ae72f90e4,5,True,gemini-paraphraser
+제 적립금 사용 기한이 언제까지인지 알려주세요.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 확인 부탁드려요.,d0d81309ac87f100d77b3efe15ef1346cfc1cd6b,1,True,gemini-paraphraser
+보유하고 있는 적립금의 만료일을 알고 싶습니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 확인 부탁드려요.,d0d81309ac87f100d77b3efe15ef1346cfc1cd6b,2,True,gemini-paraphraser
+적립금에 유효기간이 설정되어 있는지 확인해주실 수 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 확인 부탁드려요.,d0d81309ac87f100d77b3efe15ef1346cfc1cd6b,3,True,gemini-paraphraser
+제가 가지고 있는 적립금을 언제까지 사용할 수 있는지 궁금합니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 확인 부탁드려요.,d0d81309ac87f100d77b3efe15ef1346cfc1cd6b,4,True,gemini-paraphraser
+"적립금의 소멸 시효가 있는지, 있다면 언제인지 확인 부탁드립니다.",적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 확인 부탁드려요.,d0d81309ac87f100d77b3efe15ef1346cfc1cd6b,5,True,gemini-paraphraser
+배송 시작 전에 배송지를 바꾸는 것이 가능한지 알아봐 주세요.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 확인 부탁드려요.,8ba038d5024d799f1b0657ca1bb0d6824865fd7c,1,True,gemini-paraphraser
+아직 발송 전이라면 배송받을 주소를 변경할 수 있을까요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 확인 부탁드려요.,8ba038d5024d799f1b0657ca1bb0d6824865fd7c,2,True,gemini-paraphraser
+주문한 상품이 출발하기 전에 주소 수정이 가능한지 확인 부탁드립니다.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 확인 부탁드려요.,8ba038d5024d799f1b0657ca1bb0d6824865fd7c,3,True,gemini-paraphraser
+배송되기 전에 주소지를 바꾸고 싶습니다. 가능한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 확인 부탁드려요.,8ba038d5024d799f1b0657ca1bb0d6824865fd7c,4,True,gemini-paraphraser
+출고되기 전 배송 주소 변경이 가능한지 확인해주실 수 있나요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 확인 부탁드려요.,8ba038d5024d799f1b0657ca1bb0d6824865fd7c,5,True,gemini-paraphraser
+교환할 때 배송비는 얼마를 내야 하나요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 알려주세요?,3d3ecad36d58e472c452cbebc271930becb7f9e3,1,True,gemini-paraphraser
+교환 시 배송비가 궁금합니다.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 알려주세요?,3d3ecad36d58e472c452cbebc271930becb7f9e3,2,True,gemini-paraphraser
+교환 배송비에 대해 자세히 알려주세요.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 알려주세요?,3d3ecad36d58e472c452cbebc271930becb7f9e3,3,True,gemini-paraphraser
+교환하려면 배송비를 얼마나 지불해야 하나요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 알려주세요?,3d3ecad36d58e472c452cbebc271930becb7f9e3,4,True,gemini-paraphraser
+교환 시 발생하는 배송비용이 얼마인지 알고 싶습니다.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 알려주세요?,3d3ecad36d58e472c452cbebc271930becb7f9e3,5,True,gemini-paraphraser
+세탁은 어떤 방식으로 해야 하나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 어떻게 되나요?,6836712e8ce362d0b10b2bc565cc85fbdaf2543d,1,True,gemini-paraphraser
+세탁 시 주의해야 할 점이 있을까요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 어떻게 되나요?,6836712e8ce362d0b10b2bc565cc85fbdaf2543d,2,True,gemini-paraphraser
+세탁 시 권장하는 방법이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 어떻게 되나요?,6836712e8ce362d0b10b2bc565cc85fbdaf2543d,3,True,gemini-paraphraser
+이 제품은 어떻게 세탁하는 것이 가장 좋습니까?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 어떻게 되나요?,6836712e8ce362d0b10b2bc565cc85fbdaf2543d,4,True,gemini-paraphraser
+세탁하는 올바른 절차를 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 어떻게 되나요?,6836712e8ce362d0b10b2bc565cc85fbdaf2543d,5,True,gemini-paraphraser
+제주도나 도서산간 지역은 배송비가 더 붙나요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 알려주세요?,d2ee3a54c80bda88618b12ac536e20785fb955de,1,True,gemini-paraphraser
+제주 및 도서산간 지역으로 배송 시 추가 요금이 있나요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 알려주세요?,d2ee3a54c80bda88618b12ac536e20785fb955de,2,True,gemini-paraphraser
+제주도나 섬 지역으로 배송 받으려면 배송비가 추가되는지 궁금합니다.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 알려주세요?,d2ee3a54c80bda88618b12ac536e20785fb955de,3,True,gemini-paraphraser
+제주/도서산간 지역 배송 시 배송비가 추가되는지 확인 부탁드립니다.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 알려주세요?,d2ee3a54c80bda88618b12ac536e20785fb955de,4,True,gemini-paraphraser
+제주도나 산간 지역은 배송비가 더 비싼가요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 알려주세요?,d2ee3a54c80bda88618b12ac536e20785fb955de,5,True,gemini-paraphraser
+적립금 지급 시기가 궁금합니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 맞나요?,356e591b20f96d7c3f6521dceb645cb1573d276a,1,True,gemini-paraphraser
+적립금은 언제쯤 받을 수 있나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 맞나요?,356e591b20f96d7c3f6521dceb645cb1573d276a,2,True,gemini-paraphraser
+적립금 지급 일정이 어떻게 되나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 맞나요?,356e591b20f96d7c3f6521dceb645cb1573d276a,3,True,gemini-paraphraser
+적립금은 언제 제 계좌로 들어오나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 맞나요?,356e591b20f96d7c3f6521dceb645cb1573d276a,4,True,gemini-paraphraser
+적립금 지급은 언제 완료되나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 맞나요?,356e591b20f96d7c3f6521dceb645cb1573d276a,5,True,gemini-paraphraser
+주문 취소 절차를 알고 싶습니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 맞나요?,7d34810a3e9cd2a0e34dc72cd9f95d248835af6b,1,True,gemini-paraphraser
+주문 취소는 어떻게 진행해야 하나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 맞나요?,7d34810a3e9cd2a0e34dc72cd9f95d248835af6b,2,True,gemini-paraphraser
+주문 취소 방법을 알려주세요.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 맞나요?,7d34810a3e9cd2a0e34dc72cd9f95d248835af6b,3,True,gemini-paraphraser
+주문 취소는 어디에서 처리할 수 있나요?,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 맞나요?,7d34810a3e9cd2a0e34dc72cd9f95d248835af6b,4,True,gemini-paraphraser
+"주문을 취소하고 싶은데, 어디서 신청해야 하나요?",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 맞나요?,7d34810a3e9cd2a0e34dc72cd9f95d248835af6b,5,True,gemini-paraphraser
+제품에 하자가 있어요. 어떻게 해야 하나요?,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요. 알려주세요?,2e08a47fe879afac76eb5b229c7efe3db9d0ff63,1,True,gemini-paraphraser
+주문한 상품이 불량인 것 같아요. 절차를 안내해주세요.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요. 알려주세요?,2e08a47fe879afac76eb5b229c7efe3db9d0ff63,2,True,gemini-paraphraser
+받은 물건 상태가 좋지 않습니다. 어떻게 처리해야 하나요?,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요. 알려주세요?,2e08a47fe879afac76eb5b229c7efe3db9d0ff63,3,True,gemini-paraphraser
+상품에 문제가 있는 것 같습니다. 해결 방법을 알려주세요.,불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요. 알려주세요?,2e08a47fe879afac76eb5b229c7efe3db9d0ff63,4,True,gemini-paraphraser
+"불량품이 배송되었는데, 어떻게 처리해야 하는지 궁금합니다.",불량/오배송은 배송비 전액 당사 부담으로 교환 또는 환불 가능합니다.,policy,high,2026-02-19,불량 상품을 받았어요. 알려주세요?,2e08a47fe879afac76eb5b229c7efe3db9d0ff63,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요? 자세한 방법을 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 안내 받을 수 있을까요?,97706e327f96837ab9bc018fb857a80033c8dbaf,1,True,gemini-paraphraser
+이 제품 세탁 시 주의해야 할 점이 있나요? 세탁법을 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 안내 받을 수 있을까요?,97706e327f96837ab9bc018fb857a80033c8dbaf,2,True,gemini-paraphraser
+세탁 방법에 대해 자세히 알고 싶습니다. 설명서가 있을까요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 안내 받을 수 있을까요?,97706e327f96837ab9bc018fb857a80033c8dbaf,3,True,gemini-paraphraser
+세탁 시 물 온도나 세제 종류 등 특별히 신경 써야 할 부분이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 안내 받을 수 있을까요?,97706e327f96837ab9bc018fb857a80033c8dbaf,4,True,gemini-paraphraser
+세탁 관련 정보를 얻을 수 있을까요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 안내 받을 수 있을까요?,97706e327f96837ab9bc018fb857a80033c8dbaf,5,True,gemini-paraphraser
+제 주문의 배송 상태를 알려주세요.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 확인 부탁드려요.,bb1d2de2b2d0930335c235f84ce5142a45139f91,1,True,gemini-paraphraser
+배송이 언제쯤 완료될까요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 확인 부탁드려요.,bb1d2de2b2d0930335c235f84ce5142a45139f91,2,True,gemini-paraphraser
+배송 예상 기간이 궁금합니다.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 확인 부탁드려요.,bb1d2de2b2d0930335c235f84ce5142a45139f91,3,True,gemini-paraphraser
+주문한 상품은 언제 받을 수 있을까요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 확인 부탁드려요.,bb1d2de2b2d0930335c235f84ce5142a45139f91,4,True,gemini-paraphraser
+배송 진행 상황을 확인하고 싶습니다.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 확인 부탁드려요.,bb1d2de2b2d0930335c235f84ce5142a45139f91,5,True,gemini-paraphraser
+적립금은 언제까지 사용할 수 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 맞나요?,57ffbc746d100052716b2d1ec9d233e786847542,1,True,gemini-paraphraser
+적립금 사용에 기한이 정해져 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 맞나요?,57ffbc746d100052716b2d1ec9d233e786847542,2,True,gemini-paraphraser
+적립금 소멸 시점이 궁금합니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 맞나요?,57ffbc746d100052716b2d1ec9d233e786847542,3,True,gemini-paraphraser
+적립금 유효 기간이 존재하는지 알고 싶습니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 맞나요?,57ffbc746d100052716b2d1ec9d233e786847542,4,True,gemini-paraphraser
+적립금 사용 기간에 제한이 있나요?,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 맞나요?,57ffbc746d100052716b2d1ec9d233e786847542,5,True,gemini-paraphraser
+배송되기 전에 배송지를 바꾸는 것이 가능한지 확인하고 싶습니다.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 맞나요?,65d25a94a8211d6ad575375a41719790621f5e55,1,True,gemini-paraphraser
+"아직 발송 전인데, 수령 주소를 변경할 수 있을까요?",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 맞나요?,65d25a94a8211d6ad575375a41719790621f5e55,2,True,gemini-paraphraser
+주문한 상품이 출발하기 전에 주소 수정이 가능한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 맞나요?,65d25a94a8211d6ad575375a41719790621f5e55,3,True,gemini-paraphraser
+배송 시작 전에 주소지를 바꾸는 게 가능한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 맞나요?,65d25a94a8211d6ad575375a41719790621f5e55,4,True,gemini-paraphraser
+출고되기 전에 배송 주소를 변경할 수 있는지 궁금합니다.,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 맞나요?,65d25a94a8211d6ad575375a41719790621f5e55,5,True,gemini-paraphraser
+사이즈를 바꾸고 싶은데 가능한가요?,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요 알려주세요?,c33762c9a5fbe4b9b2f0bbe5d0959d354a89fbf3,1,True,gemini-paraphraser
+사이즈 교환 절차에 대해 안내 부탁드립니다.,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요 알려주세요?,c33762c9a5fbe4b9b2f0bbe5d0959d354a89fbf3,2,True,gemini-paraphraser
+다른 사이즈로 교환하고 싶은데 어떻게 해야 하나요?,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요 알려주세요?,c33762c9a5fbe4b9b2f0bbe5d0959d354a89fbf3,3,True,gemini-paraphraser
+제가 주문한 상품 사이즈를 변경할 수 있을까요?,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요 알려주세요?,c33762c9a5fbe4b9b2f0bbe5d0959d354a89fbf3,4,True,gemini-paraphraser
+사이즈 미스로 교환을 요청하고 싶습니다.,상품 수령 후 7일 이내 미착용 상태에서 사이즈 교환이 가능합니다.,policy,high,2026-02-19,사이즈 교환 가능한가요 알려주세요?,c33762c9a5fbe4b9b2f0bbe5d0959d354a89fbf3,5,True,gemini-paraphraser
+세탁 시 주의사항을 알고 싶습니다. 관련 정보를 다시 한번 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준을 다시 확인 부탁드려요.,a6e89657a8cc6783983bb0df4324bfed7e41a5e6,1,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요? 세탁 기준을 다시 확인하고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준을 다시 확인 부탁드려요.,a6e89657a8cc6783983bb0df4324bfed7e41a5e6,2,True,gemini-paraphraser
+세탁 방법에 대해 자세히 알고 싶습니다. 세탁 관련 가이드라인을 재확인 부탁드립니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준을 다시 확인 부탁드려요.,a6e89657a8cc6783983bb0df4324bfed7e41a5e6,3,True,gemini-paraphraser
+제품 세탁법을 알고 싶어요. 세탁 기준을 다시 알려주실 수 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준을 다시 확인 부탁드려요.,a6e89657a8cc6783983bb0df4324bfed7e41a5e6,4,True,gemini-paraphraser
+세탁 시 유의해야 할 점이 있나요? 세탁 기준을 다시 확인하고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 기준을 다시 확인 부탁드려요.,a6e89657a8cc6783983bb0df4324bfed7e41a5e6,5,True,gemini-paraphraser
+무료 배송이 적용되는 조건이 궁금합니다.,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 확인 부탁드려요.,6863e4a14e3054714ee090cacd38d9b7838af9f8,1,True,gemini-paraphraser
+배송비 무료 혜택을 받으려면 어떻게 해야 하나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 확인 부탁드려요.,6863e4a14e3054714ee090cacd38d9b7838af9f8,2,True,gemini-paraphraser
+어느 정도 금액 이상 구매해야 무료 배송인가요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 확인 부탁드려요.,6863e4a14e3054714ee090cacd38d9b7838af9f8,3,True,gemini-paraphraser
+무료 배송을 위한 최소 주문 금액을 알려주세요.,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 확인 부탁드려요.,6863e4a14e3054714ee090cacd38d9b7838af9f8,4,True,gemini-paraphraser
+배송비가 부과되지 않는 기준이 어떻게 되나요?,"실결제금액 50,000원 이상이면 무료 배송입니다.",shipping,high,2026-02-19,무료 배송 기준은 무엇인가요 확인 부탁드려요.,6863e4a14e3054714ee090cacd38d9b7838af9f8,5,True,gemini-paraphraser
+적립금 지급 시점과 관련된 규정이 궁금합니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 기준이 궁금해요.,21450351c50c234443a6d8dab9b6b4d5c52ca4d1,1,True,gemini-paraphraser
+적립금은 어떤 조건으로 언제 받을 수 있나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 기준이 궁금해요.,21450351c50c234443a6d8dab9b6b4d5c52ca4d1,2,True,gemini-paraphraser
+적립금 지급에 대한 자세한 안내를 부탁드립니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 기준이 궁금해요.,21450351c50c234443a6d8dab9b6b4d5c52ca4d1,3,True,gemini-paraphraser
+적립금은 언제 제 계정으로 들어오는지 알고 싶습니다.,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 기준이 궁금해요.,21450351c50c234443a6d8dab9b6b4d5c52ca4d1,4,True,gemini-paraphraser
+적립금 지급은 어떤 절차로 진행되나요?,구매 확정 후 3일 이내 적립금이 지급됩니다.,membership,medium,2026-02-19,적립금은 언제 지급되나요 기준이 궁금해요.,21450351c50c234443a6d8dab9b6b4d5c52ca4d1,5,True,gemini-paraphraser
+주문 취소 절차와 관련된 규정을 알고 싶습니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 기준이 궁금해요.,88d1b8a2791e73be39aa745200be5311171f9d5a,1,True,gemini-paraphraser
+"주문 취소를 하려면 어떻게 해야 하는지, 어떤 조건이 필요한가요?",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 기준이 궁금해요.,88d1b8a2791e73be39aa745200be5311171f9d5a,2,True,gemini-paraphraser
+"주문 취소는 어떤 경우에 가능하며, 어디에서 신청할 수 있나요?",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 기준이 궁금해요.,88d1b8a2791e73be39aa745200be5311171f9d5a,3,True,gemini-paraphraser
+주문 취소와 관련된 정책이나 방법이 궁금합니다.,배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 기준이 궁금해요.,88d1b8a2791e73be39aa745200be5311171f9d5a,4,True,gemini-paraphraser
+"주문 취소는 어디에서 진행되며, 어떤 조건에서 가능한지 알고 싶습니다.",배송 준비 전 상태에서 마이페이지 주문내역에서 취소 가능합니다.,order,high,2026-02-19,주문 취소는 어디서 하나요 기준이 궁금해요.,88d1b8a2791e73be39aa745200be5311171f9d5a,5,True,gemini-paraphraser
+반품 신청 기간이 언제까지인지 알려주세요.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 확인 부탁드려요.,24ff2a05d1d1d724f535bfee1ae76bf435840219,1,True,gemini-paraphraser
+반품 접수 마감일이 궁금합니다.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 확인 부탁드려요.,24ff2a05d1d1d724f535bfee1ae76bf435840219,2,True,gemini-paraphraser
+반품을 하려면 며칠 안에 신청해야 하는지 확인해주세요.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 확인 부탁드려요.,24ff2a05d1d1d724f535bfee1ae76bf435840219,3,True,gemini-paraphraser
+반품 신청은 언제까지 가능한가요?,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 확인 부탁드려요.,24ff2a05d1d1d724f535bfee1ae76bf435840219,4,True,gemini-paraphraser
+반품 접수 기한을 알고 싶습니다.,상품 수령 후 7일 이내에 반품 접수가 가능합니다.,policy,high,2026-02-19,반품은 며칠 내에 접수해야 하나요 확인 부탁드려요.,24ff2a05d1d1d724f535bfee1ae76bf435840219,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요? 자세하게 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 관련해서 정확한 안내 부탁드립니다.,13967f3d33679e7cfdf0ea8cce2ddbf0d4248c0c,1,True,gemini-paraphraser
+세탁 방법에 대해 자세한 설명이 필요합니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 관련해서 정확한 안내 부탁드립니다.,13967f3d33679e7cfdf0ea8cce2ddbf0d4248c0c,2,True,gemini-paraphraser
+세탁 시 주의사항이나 권장 방법이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 관련해서 정확한 안내 부탁드립니다.,13967f3d33679e7cfdf0ea8cce2ddbf0d4248c0c,3,True,gemini-paraphraser
+세탁 관련 정보를 자세히 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 관련해서 정확한 안내 부탁드립니다.,13967f3d33679e7cfdf0ea8cce2ddbf0d4248c0c,4,True,gemini-paraphraser
+올바른 세탁법을 알려주시면 감사하겠습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 관련해서 정확한 안내 부탁드립니다.,13967f3d33679e7cfdf0ea8cce2ddbf0d4248c0c,5,True,gemini-paraphraser
+제주도나 도서산간 지역은 배송비가 더 붙는지 궁금합니다.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 확인 부탁드려요.,d934110da41f376bee19a65dc5570a2a5785721d,1,True,gemini-paraphraser
+제주 및 도서산간 지역으로 배송 시 추가 요금이 발생하는지 확인해주세요.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 확인 부탁드려요.,d934110da41f376bee19a65dc5570a2a5785721d,2,True,gemini-paraphraser
+제주도나 섬 지역으로 배송받을 때 배송비가 추가되나요?,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 확인 부탁드려요.,d934110da41f376bee19a65dc5570a2a5785721d,3,True,gemini-paraphraser
+배송지를 제주도 또는 도서산간으로 설정했을 때 배송비가 더 나오는지 알고 싶어요.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 확인 부탁드려요.,d934110da41f376bee19a65dc5570a2a5785721d,4,True,gemini-paraphraser
+제주/도서산간 지역 배송 시 배송비 추가 여부를 확인하고 싶습니다.,"제주/도서산간은 3,000원의 추가 배송비가 부과됩니다.",shipping,medium,2026-02-19,제주/도서산간 배송비가 추가되나요 확인 부탁드려요.,d934110da41f376bee19a65dc5570a2a5785721d,5,True,gemini-paraphraser
+적립금은 언제까지 사용할 수 있나요? 사용 기한에 대한 규정이 궁금합니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 기준이 궁금해요.,19765b70401c5e46299c5e71f61778bc99509f2f,1,True,gemini-paraphraser
+"적립금 사용에 제한 기간이 있는지, 있다면 어떤 기준으로 정해지는지 알고 싶습니다.",적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 기준이 궁금해요.,19765b70401c5e46299c5e71f61778bc99509f2f,2,True,gemini-paraphraser
+보유하고 있는 적립금의 만료일은 어떻게 되나요? 적립금 정책에 대해 자세히 알려주세요.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 기준이 궁금해요.,19765b70401c5e46299c5e71f61778bc99509f2f,3,True,gemini-paraphraser
+"적립금 유효기간이 설정되어 있다면, 그 기간은 얼마나 되나요? 관련 기준을 설명해주세요.",적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 기준이 궁금해요.,19765b70401c5e46299c5e71f61778bc99509f2f,4,True,gemini-paraphraser
+적립금 사용 가능 기간과 관련된 규정이 있나요? 있다면 어떤 내용인지 자세하게 안내 부탁드립니다.,적립금은 지급일 기준 12개월 동안 사용할 수 있습니다.,membership,low,2026-02-19,적립금 유효기간이 있나요 기준이 궁금해요.,19765b70401c5e46299c5e71f61778bc99509f2f,5,True,gemini-paraphraser
+"배송되기 전에 배송지를 바꾸는 것이 가능한지, 가능하다면 어떤 조건으로 가능한지 알고 싶습니다.",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 기준이 궁금해요.,6ced82b38f3cb6ea0789a4a42b10333723a63a88,1,True,gemini-paraphraser
+"주문한 상품이 아직 발송되지 않았는데, 배송 주소를 변경할 수 있는지 여부와 절차를 알려주세요.",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 기준이 궁금해요.,6ced82b38f3cb6ea0789a4a42b10333723a63a88,2,True,gemini-paraphraser
+"상품이 출발하기 전에 배송받을 곳을 바꾸고 싶은데, 가능한지 그리고 어떻게 해야 하는지 궁금합니다.",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 기준이 궁금해요.,6ced82b38f3cb6ea0789a4a42b10333723a63a88,3,True,gemini-paraphraser
+아직 배송 시작 전인데 주소 변경이 가능한가요? 가능하다면 어떤 절차가 필요한가요?,출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 기준이 궁금해요.,6ced82b38f3cb6ea0789a4a42b10333723a63a88,4,True,gemini-paraphraser
+"출고되기 전에 배송 주소를 바꾸는 것이 가능한지, 가능하다면 어떤 조건이 필요한지 알고 싶습니다.",출고 전 주문건에 한해 고객센터를 통해 변경 요청이 가능합니다.,order,medium,2026-02-19,출고 전 주소 변경 가능한가요 기준이 궁금해요.,6ced82b38f3cb6ea0789a4a42b10333723a63a88,5,True,gemini-paraphraser
+교환할 때 배송비가 얼마나 나오는지 알려주세요.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 확인 부탁드려요.,585e5e27d33558ef9bbb0dbb3f3b4e85383ca86a,1,True,gemini-paraphraser
+교환 시 배송비용이 얼마인지 확인하고 싶습니다.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 확인 부탁드려요.,585e5e27d33558ef9bbb0dbb3f3b4e85383ca86a,2,True,gemini-paraphraser
+교환 배송비가 얼마인지 궁금합니다.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 확인 부탁드려요.,585e5e27d33558ef9bbb0dbb3f3b4e85383ca86a,3,True,gemini-paraphraser
+교환에 필요한 배송비가 얼마인지 확인해 주실 수 있나요?,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 확인 부탁드려요.,585e5e27d33558ef9bbb0dbb3f3b4e85383ca86a,4,True,gemini-paraphraser
+교환할 제품의 배송비가 얼마인지 알고 싶습니다.,"고객 변심 교환은 왕복 배송비 6,000원이 발생합니다.",policy,high,2026-02-19,교환 배송비는 얼마인가요 확인 부탁드려요.,585e5e27d33558ef9bbb0dbb3f3b4e85383ca86a,5,True,gemini-paraphraser
+세탁은 어떻게 해야 하나요? 고객센터 규정에 따른 세탁 방법을 알고 싶습니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 고객센터 기준으로 어떻게 되나요?,53ce269c6c563268d964bec7397a42d4f88b9b2b,1,True,gemini-paraphraser
+세탁 방법에 대해 문의드립니다. 고객센터에서 안내하는 세탁 기준이 있나요?,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 고객센터 기준으로 어떻게 되나요?,53ce269c6c563268d964bec7397a42d4f88b9b2b,2,True,gemini-paraphraser
+세탁 시 주의사항이 궁금합니다. 고객센터에서 제시하는 세탁 관련 가이드라인을 알려주세요.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 고객센터 기준으로 어떻게 되나요?,53ce269c6c563268d964bec7397a42d4f88b9b2b,3,True,gemini-paraphraser
+"옷을 세탁하려고 하는데, 권장하는 방법이 있나요? 고객센터 기준으로 설명 부탁드립니다.",상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 고객센터 기준으로 어떻게 되나요?,53ce269c6c563268d964bec7397a42d4f88b9b2b,4,True,gemini-paraphraser
+세탁 관련 문의입니다. 고객센터의 세탁 관련 정책이나 안내 사항이 있는지 궁금합니다.,상품 상세의 세탁 가이드를 확인해 주세요. 일반적으로 찬물 단독 손세탁을 권장합니다.,product,medium,2026-02-19,세탁 방법이 궁금해요. 고객센터 기준으로 어떻게 되나요?,53ce269c6c563268d964bec7397a42d4f88b9b2b,5,True,gemini-paraphraser
+배송 기간이 얼마나 소요되나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 맞나요?,9c117e6691331be22a043e708dc2c59568258274,1,True,gemini-paraphraser
+배송은 대략 며칠 정도 걸릴까요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 맞나요?,9c117e6691331be22a043e708dc2c59568258274,2,True,gemini-paraphraser
+상품 배송에 걸리는 시간이 궁금합니다.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 맞나요?,9c117e6691331be22a043e708dc2c59568258274,3,True,gemini-paraphraser
+배송까지 얼마나 기다려야 하나요?,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 맞나요?,9c117e6691331be22a043e708dc2c59568258274,4,True,gemini-paraphraser
+배송 소요 시간을 알려주세요.,결제 완료 후 평균 2~3영업일 소요됩니다.,shipping,high,2026-02-19,배송은 얼마나 걸리나요 맞나요?,9c117e6691331be22a043e708dc2c59568258274,5,True,gemini-paraphraser
