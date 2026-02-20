@@ -212,6 +212,7 @@
                         <div class="sm:col-span-2">
                             <label class="text-sm text-slate-600" for="autoToken">x-naver-autoreply-token</label>
                             <input id="autoToken" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" placeholder="자동응답 토큰 입력" />
+                            <p class="mt-1 text-xs text-slate-500">공개 데모는 토큰 없이 동작합니다. 이 토큰은 운영자 강제 실행용입니다.</p>
                         </div>
                     </div>
                     <div class="mt-4 flex flex-wrap gap-2">
@@ -395,6 +396,11 @@
         byId("statusMessage").textContent = text;
       }
 
+      function isTokenAuthError(out) {
+        const detail = String((out && out.body && out.body.detail) || "");
+        return out && out.status === 401 && detail.includes("Invalid naver auto-reply token");
+      }
+
       function makeAutoHeaders() {
         const token = byId("autoToken").value.trim();
         const headers = { "content-type": "application/json" };
@@ -444,8 +450,9 @@
       };
 
       byId("btnAutoOnce").onclick = async () => {
+        const tenantId = byId("tenantId").value.trim() || "tenant-demo";
         const payload = {
-          tenant_id: byId("tenantId").value.trim() || "tenant-demo",
+          tenant_id: tenantId,
           session_id_prefix: "landing-auto-once",
           dry_run: false,
         };
@@ -453,17 +460,39 @@
         if (questionId) {
           payload.question_id = questionId;
         }
+        const token = byId("autoToken").value.trim();
+        if (!token) {
+          const publicOut = await callJson(`/v1/tools/naver/public-demo-feed?tenant_id=${encodeURIComponent(tenantId)}&page=1&size=20`);
+          byId("qnaOut").textContent = pretty(publicOut);
+          if (publicOut.status === 200) {
+            setLiveStatus("토큰 없이 공개 모드로 1회 동기화 완료");
+          }
+          return;
+        }
         const out = await callJson("/v1/tools/naver/auto-answer-once", {
           method: "POST",
           headers: makeAutoHeaders(),
           body: JSON.stringify(payload),
         });
+        if (isTokenAuthError(out)) {
+          const publicOut = await callJson(`/v1/tools/naver/public-demo-feed?tenant_id=${encodeURIComponent(tenantId)}&page=1&size=20`);
+          byId("qnaOut").textContent = pretty(publicOut);
+          setLiveStatus("토큰 인증 실패로 공개 모드로 전환했습니다.");
+          return;
+        }
         byId("qnaOut").textContent = pretty(out);
       };
 
       byId("btnDrain").onclick = async () => {
+        const tenantId = byId("tenantId").value.trim() || "tenant-demo";
+        const token = byId("autoToken").value.trim();
+        if (!token) {
+          setLiveStatus("공개 데모에서는 일괄 처리 대신 실시간 모니터를 사용합니다.");
+          await runLivePollOnce();
+          return;
+        }
         const payload = {
-          tenant_id: byId("tenantId").value.trim() || "tenant-demo",
+          tenant_id: tenantId,
           session_id_prefix: "landing-auto-drain",
           max_iterations: Number(byId("maxIterations").value || 20),
           dry_run: false,
@@ -475,6 +504,11 @@
           headers: makeAutoHeaders(),
           body: JSON.stringify(payload),
         });
+        if (isTokenAuthError(out)) {
+          setLiveStatus("토큰 인증 실패입니다. 공개 데모는 실시간 모니터를 이용해 주세요.");
+          await runLivePollOnce();
+          return;
+        }
         byId("qnaOut").textContent = pretty(out);
       };
 
