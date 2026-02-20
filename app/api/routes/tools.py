@@ -1,4 +1,6 @@
+import threading
 import time
+from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
@@ -15,6 +17,10 @@ from app.services.llm_provider import invoke_with_fallback
 
 
 router = APIRouter(prefix="/v1/tools", tags=["tools"])
+_PUBLIC_DEMO_LOCK = threading.Lock()
+_PUBLIC_DEMO_LAST_RUN_TS = 0.0
+_PUBLIC_DEMO_MIN_INTERVAL_SECONDS = 8.0
+_PUBLIC_DEMO_RECENT_EVENTS: deque[dict[str, Any]] = deque(maxlen=30)
 
 
 class TrackDeliveryRequest(BaseModel):
@@ -91,6 +97,55 @@ class NaverAutoAnswerResponse(BaseModel):
     posted: bool = False
     reason: str | None = None
     why_fallback: str | None = None
+
+
+class NaverPublicDemoFeedResponse(BaseModel):
+    status: str
+    auto_result: NaverAutoAnswerResponse | None = None
+    latest_qnas: list[dict[str, Any]]
+    recent_events: list[dict[str, Any]]
+    updated_at: str
+
+
+def _extract_qna_items(payload: dict[str, Any] | Any) -> list[dict[str, Any]]:
+    if not isinstance(payload, dict):
+        return []
+    for key in ("contents", "items", "data"):
+        candidate = payload.get(key)
+        if isinstance(candidate, list):
+            return [item for item in candidate if isinstance(item, dict)]
+    return []
+
+
+def _extract_qna_answer_text(item: dict[str, Any]) -> str:
+    nested_answer = item.get("answer")
+    candidates: list[str] = []
+
+    if isinstance(nested_answer, dict):
+        for key in ("content", "answerContent", "commentContent", "text"):
+            value = str(nested_answer.get(key) or "").strip()
+            if value:
+                candidates.append(value)
+    elif nested_answer:
+        candidates.append(str(nested_answer).strip())
+
+    for key in ("answerContent", "commentContent", "comment", "reply", "replyContent"):
+        value = str(item.get(key) or "").strip()
+        if value:
+            candidates.append(value)
+
+    return candidates[0] if candidates else ""
+
+
+def _project_qna_item(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "question_id": str(item.get("questionId") or "").strip(),
+        "question": str(item.get("question") or "").strip(),
+        "product_name": str(item.get("productName") or "").strip(),
+        "answered": bool(item.get("answered")),
+        "answer": _extract_qna_answer_text(item),
+        "created_at": str(item.get("createdDate") or item.get("createdAt") or "").strip(),
+    }
 
 
 def _extract_unanswered_qna(items: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -274,12 +329,7 @@ def naver_answer_qna(question_id: str, payload: NaverInquiryAnswerRequest) -> Na
     return NaverInquiryAnswerResponse(status="ok", data=response_payload)
 
 
-@router.post("/naver/auto-answer-once", response_model=NaverAutoAnswerResponse)
-def naver_auto_answer_once(
-    payload: NaverAutoAnswerRequest,
-    x_naver_autoreply_token: str | None = Header(default=None, alias="x-naver-autoreply-token"),
-) -> NaverAutoAnswerResponse:
-    _validate_naver_autoreply_token(x_naver_autoreply_token)
+def _run_naver_auto_answer_once(payload: NaverAutoAnswerRequest) -> NaverAutoAnswerResponse:
     client = NaverCommerceClient()
     try:
         qna_payload = client.list_qnas(
@@ -293,14 +343,14 @@ def naver_auto_answer_once(
     except NaverCommerceAPIError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    items = qna_payload.get("contents") if isinstance(qna_payload, dict) else None
-    if not isinstance(items, list):
+    dict_items = _extract_qna_items(qna_payload)
+    if not dict_items:
         return NaverAutoAnswerResponse(
             status="noop",
             posted=False,
             reason="qna_payload_invalid",
         )
-    dict_items = [item for item in items if isinstance(item, dict)]
+
     target: dict[str, Any] | None = None
 
     if payload.question_id:
@@ -413,6 +463,15 @@ def naver_auto_answer_once(
     )
 
 
+@router.post("/naver/auto-answer-once", response_model=NaverAutoAnswerResponse)
+def naver_auto_answer_once(
+    payload: NaverAutoAnswerRequest,
+    x_naver_autoreply_token: str | None = Header(default=None, alias="x-naver-autoreply-token"),
+) -> NaverAutoAnswerResponse:
+    _validate_naver_autoreply_token(x_naver_autoreply_token)
+    return _run_naver_auto_answer_once(payload)
+
+
 class NaverAutoAnswerDrainRequest(BaseModel):
     tenant_id: str = Field(default="tenant-demo", min_length=1)
     session_id_prefix: str = Field(default="naver-auto-drain", min_length=1)
@@ -446,7 +505,7 @@ def naver_auto_answer_drain(
     last_reason: str | None = None
 
     for idx in range(payload.max_iterations):
-        result = naver_auto_answer_once(
+        result = _run_naver_auto_answer_once(
             payload=NaverAutoAnswerRequest(
                 tenant_id=payload.tenant_id,
                 session_id_prefix=f"{payload.session_id_prefix}-{idx + 1}",
@@ -455,8 +514,7 @@ def naver_auto_answer_drain(
                 from_date=payload.from_date,
                 to_date=payload.to_date,
                 dry_run=payload.dry_run,
-            ),
-            x_naver_autoreply_token=x_naver_autoreply_token,
+            )
         )
         results.append(result)
 
@@ -489,4 +547,78 @@ def naver_auto_answer_drain(
         blocked=blocked,
         last_reason=last_reason,
         results=results,
+    )
+
+
+@router.get("/naver/public-demo-feed", response_model=NaverPublicDemoFeedResponse)
+def naver_public_demo_feed(
+    tenant_id: str = "tenant-demo",
+    page: int = 1,
+    size: int = 20,
+) -> NaverPublicDemoFeedResponse:
+    global _PUBLIC_DEMO_LAST_RUN_TS
+
+    now_ts = time.time()
+    should_run = False
+    auto_result: NaverAutoAnswerResponse | None = None
+
+    with _PUBLIC_DEMO_LOCK:
+        if now_ts - _PUBLIC_DEMO_LAST_RUN_TS >= _PUBLIC_DEMO_MIN_INTERVAL_SECONDS:
+            _PUBLIC_DEMO_LAST_RUN_TS = now_ts
+            should_run = True
+
+    if should_run:
+        try:
+            auto_result = _run_naver_auto_answer_once(
+                NaverAutoAnswerRequest(
+                    tenant_id=tenant_id,
+                    session_id_prefix="public-demo-auto",
+                    page=page,
+                    size=size,
+                    dry_run=False,
+                )
+            )
+        except HTTPException as exc:
+            auto_result = NaverAutoAnswerResponse(
+                status="blocked",
+                posted=False,
+                reason="public_demo_error",
+                why_fallback=f"http_{exc.status_code}",
+            )
+        except Exception:
+            auto_result = NaverAutoAnswerResponse(
+                status="blocked",
+                posted=False,
+                reason="public_demo_error",
+                why_fallback=FallbackCode.RUNTIME_CONFIG_MISSING.value,
+            )
+
+        if auto_result and auto_result.question_id:
+            _PUBLIC_DEMO_RECENT_EVENTS.appendleft(
+                {
+                    "captured_at": datetime.now(tz=timezone.utc).isoformat(),
+                    "question_id": auto_result.question_id,
+                    "question": auto_result.question,
+                    "answer": auto_result.answer,
+                    "posted": auto_result.posted,
+                    "reason": auto_result.reason,
+                }
+            )
+
+    client = NaverCommerceClient()
+    try:
+        qna_payload = client.list_qnas(page=page, size=size)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except NaverCommerceAPIError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    latest_qnas = [_project_qna_item(item) for item in _extract_qna_items(qna_payload)]
+
+    return NaverPublicDemoFeedResponse(
+        status="ok",
+        auto_result=auto_result,
+        latest_qnas=latest_qnas,
+        recent_events=list(_PUBLIC_DEMO_RECENT_EVENTS),
+        updated_at=datetime.now(tz=timezone.utc).isoformat(),
     )

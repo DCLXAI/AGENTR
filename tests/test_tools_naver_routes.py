@@ -1,3 +1,6 @@
+import time
+from collections import deque
+
 from fastapi.testclient import TestClient
 
 from app.api.main import create_app
@@ -376,3 +379,72 @@ def test_naver_auto_answer_drain_requires_token_when_configured(monkeypatch) -> 
 
     response = client.post("/v1/tools/naver/auto-answer-drain", json={"max_iterations": 1})
     assert response.status_code == 401
+
+
+def test_naver_public_demo_feed_returns_latest_qnas(monkeypatch) -> None:
+    class _FakeNaverClientWithContents(_FakeNaverClient):
+        def list_qnas(self, **kwargs):
+            return {
+                "contents": [
+                    {
+                        "questionId": 9001,
+                        "question": "재고 있나요?",
+                        "answered": True,
+                        "answerContent": "네, 재고 있습니다.",
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(tools, "NaverCommerceClient", lambda: _FakeNaverClientWithContents())
+    monkeypatch.setattr(tools, "_PUBLIC_DEMO_LAST_RUN_TS", time.time())
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.get("/v1/tools/naver/public-demo-feed")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["latest_qnas"][0]["question_id"] == "9001"
+    assert body["latest_qnas"][0]["answer"] == "네, 재고 있습니다."
+
+
+def test_naver_public_demo_feed_runs_auto_answer_and_records_event(monkeypatch) -> None:
+    class _FakeNaverClientWithUnanswered(_FakeNaverClient):
+        def list_qnas(self, **kwargs):
+            return {
+                "contents": [
+                    {
+                        "questionId": 9010,
+                        "question": "오늘 출고되나요?",
+                        "productName": "GPT PRO",
+                        "answered": False,
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(tools, "NaverCommerceClient", lambda: _FakeNaverClientWithUnanswered())
+    monkeypatch.setattr(
+        tools,
+        "run_support_flow",
+        lambda **kwargs: {
+            "answer": "오늘 순차 출고 예정입니다.",
+            "intent": "tracking",
+            "confidence": 0.95,
+            "needs_human": False,
+            "why_fallback": None,
+        },
+    )
+    monkeypatch.setattr(tools, "_PUBLIC_DEMO_LAST_RUN_TS", 0.0)
+    monkeypatch.setattr(tools, "_PUBLIC_DEMO_MIN_INTERVAL_SECONDS", 0.0)
+    monkeypatch.setattr(tools, "_PUBLIC_DEMO_RECENT_EVENTS", deque(maxlen=30))
+
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.get("/v1/tools/naver/public-demo-feed")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["auto_result"]["status"] == "ok"
+    assert body["auto_result"]["posted"] is True
+    assert body["recent_events"][0]["question_id"] == "9010"

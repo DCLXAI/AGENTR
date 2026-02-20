@@ -34,6 +34,7 @@ def test_static_homepage_is_served() -> None:
     assert "AutoCS" in response.text
     assert "AGENTR 실시간 데모" in response.text
     assert "/v1/tools/naver/auto-answer-once" in response.text
+    assert "/v1/tools/naver/public-demo-feed" in response.text
 
 
 def test_root_redirects_to_homepage() -> None:
