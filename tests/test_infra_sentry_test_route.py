@@ -68,3 +68,31 @@ def test_sentry_test_route_returns_event_id(monkeypatch) -> None:
     assert body["event_id"] == "event-info-123"
     assert body["request_id"]
     assert body["sent_at"]
+
+
+def test_egress_ip_route_requires_token(monkeypatch) -> None:
+    monkeypatch.setattr(infra_test, "get_settings", lambda: _settings())
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.get("/v1/infra/egress-ip")
+    assert response.status_code == 401
+
+
+def test_egress_ip_route_returns_ip(monkeypatch) -> None:
+    monkeypatch.setattr(infra_test, "get_settings", lambda: _settings())
+    monkeypatch.setattr(infra_test, "_resolve_egress_ip", lambda timeout_seconds=2.0: ("203.0.113.10", "ipify"))
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.get(
+        "/v1/infra/egress-ip",
+        headers={"x-infra-test-token": "token-123"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["egress_ip"] == "203.0.113.10"
+    assert body["provider"] == "ipify"
+    assert body["request_id"]
+    assert body["checked_at"]
