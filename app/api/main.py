@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
 
     @app.get("/")
     def root() -> RedirectResponse:
-        return RedirectResponse(url="/static/mvp_demo.html", status_code=307)
+        return RedirectResponse(url="/static/homepage.html", status_code=307)
 
     @app.get("/health")
     def health() -> dict[str, str]:
