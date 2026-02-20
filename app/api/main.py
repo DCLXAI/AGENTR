@@ -1,4 +1,5 @@
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,7 +10,11 @@ from app.api.routes.chat import router as chat_router
 from app.api.routes.infra import router as infra_router
 from app.api.routes.infra_test import router as infra_test_router
 from app.api.routes.rag import router as rag_router
-from app.api.routes.tools import router as tools_router
+from app.api.routes.tools import (
+    router as tools_router,
+    start_naver_autoreply_worker_if_enabled,
+    stop_naver_autoreply_worker,
+)
 from app.core.config import get_settings
 from app.core.observability import configure_observability
 
@@ -18,7 +23,15 @@ def create_app() -> FastAPI:
     settings = get_settings()
     settings.validate_runtime()
 
-    app = FastAPI(title="Shop AI API", version="0.1.0")
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        start_naver_autoreply_worker_if_enabled()
+        try:
+            yield
+        finally:
+            stop_naver_autoreply_worker()
+
+    app = FastAPI(title="Shop AI API", version="0.1.0", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.get_cors_allowed_origins(),

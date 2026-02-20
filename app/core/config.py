@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     naver_commerce_client_secret: str = Field(default="")
     naver_commerce_base_url: str = "https://api.commerce.naver.com"
     naver_autoreply_token: str = Field(default="")
+    naver_autoreply_worker_enabled: bool = True
+    naver_autoreply_worker_interval_seconds: int = 15
+    naver_autoreply_worker_page_size: int = 50
+    naver_autoreply_worker_tenant_id: str = "tenant-demo"
 
     supabase_url: str = Field(default="")
     supabase_service_role_key: str = Field(default="")

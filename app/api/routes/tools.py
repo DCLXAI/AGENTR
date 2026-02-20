@@ -1,5 +1,6 @@
 import threading
 import time
+import logging
 from collections import deque
 from datetime import datetime, timezone
 from typing import Any
@@ -21,6 +22,12 @@ _PUBLIC_DEMO_LOCK = threading.Lock()
 _PUBLIC_DEMO_LAST_RUN_TS = 0.0
 _PUBLIC_DEMO_MIN_INTERVAL_SECONDS = 8.0
 _PUBLIC_DEMO_RECENT_EVENTS: deque[dict[str, Any]] = deque(maxlen=30)
+_NAVER_WORKER_LOCK = threading.Lock()
+_NAVER_WORKER_STOP_EVENT = threading.Event()
+_NAVER_WORKER_THREAD: threading.Thread | None = None
+_NAVER_WORKER_LAST_RESULT: dict[str, Any] = {}
+
+logger = logging.getLogger(__name__)
 
 
 class TrackDeliveryRequest(BaseModel):
@@ -105,6 +112,15 @@ class NaverPublicDemoFeedResponse(BaseModel):
     latest_qnas: list[dict[str, Any]]
     recent_events: list[dict[str, Any]]
     updated_at: str
+
+
+class NaverAutoReplyWorkerStatusResponse(BaseModel):
+    enabled: bool
+    running: bool
+    interval_seconds: int
+    page_size: int
+    tenant_id: str
+    last_result: dict[str, Any]
 
 
 def _extract_qna_items(payload: dict[str, Any] | Any) -> list[dict[str, Any]]:
@@ -474,6 +490,130 @@ def _run_naver_auto_answer_once(payload: NaverAutoAnswerRequest) -> NaverAutoAns
         confidence=float(flow_state.get("confidence", 0.0)),
         posted=True,
         why_fallback=why_fallback,
+    )
+
+
+def _set_worker_last_result(payload: dict[str, Any]) -> None:
+    global _NAVER_WORKER_LAST_RESULT
+    _NAVER_WORKER_LAST_RESULT = payload
+
+
+def _run_naver_worker_cycle() -> None:
+    settings = get_settings()
+    request = NaverAutoAnswerRequest(
+        tenant_id=settings.naver_autoreply_worker_tenant_id or "tenant-demo",
+        session_id_prefix="server-auto-worker",
+        page=1,
+        size=max(1, min(settings.naver_autoreply_worker_page_size, 100)),
+        dry_run=False,
+    )
+
+    started = time.perf_counter()
+    try:
+        result = _run_naver_auto_answer_once(request)
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        payload = {
+            "captured_at": datetime.now(tz=timezone.utc).isoformat(),
+            "status": result.status,
+            "posted": result.posted,
+            "reason": result.reason,
+            "question_id": result.question_id,
+            "why_fallback": result.why_fallback,
+            "latency_ms": latency_ms,
+        }
+        _set_worker_last_result(payload)
+        if result.posted:
+            logger.info("Naver auto-reply worker posted answer question_id=%s", result.question_id)
+    except Exception as exc:
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        payload = {
+            "captured_at": datetime.now(tz=timezone.utc).isoformat(),
+            "status": "error",
+            "posted": False,
+            "reason": "worker_exception",
+            "question_id": None,
+            "why_fallback": FallbackCode.RUNTIME_CONFIG_MISSING.value,
+            "latency_ms": latency_ms,
+            "error": str(exc),
+        }
+        _set_worker_last_result(payload)
+        logger.exception("Naver auto-reply worker cycle failed")
+
+
+def _naver_worker_loop() -> None:
+    settings = get_settings()
+    interval = max(5, settings.naver_autoreply_worker_interval_seconds)
+    while not _NAVER_WORKER_STOP_EVENT.is_set():
+        cycle_started = time.perf_counter()
+        _run_naver_worker_cycle()
+        elapsed = time.perf_counter() - cycle_started
+        wait_seconds = max(0.5, interval - elapsed)
+        _NAVER_WORKER_STOP_EVENT.wait(wait_seconds)
+
+
+def start_naver_autoreply_worker_if_enabled() -> bool:
+    settings = get_settings()
+    if settings.service_name != "api":
+        return False
+    if not settings.naver_autoreply_worker_enabled:
+        logger.info("Naver auto-reply worker disabled by config.")
+        return False
+
+    required_missing = []
+    if not settings.naver_commerce_client_id.strip():
+        required_missing.append("NAVER_COMMERCE_CLIENT_ID")
+    if not settings.naver_commerce_client_secret.strip():
+        required_missing.append("NAVER_COMMERCE_CLIENT_SECRET")
+
+    if required_missing:
+        logger.warning(
+            "Naver auto-reply worker not started; missing env: %s",
+            ", ".join(required_missing),
+        )
+        return False
+
+    global _NAVER_WORKER_THREAD
+    with _NAVER_WORKER_LOCK:
+        if _NAVER_WORKER_THREAD and _NAVER_WORKER_THREAD.is_alive():
+            return True
+        _NAVER_WORKER_STOP_EVENT.clear()
+        _NAVER_WORKER_THREAD = threading.Thread(
+            target=_naver_worker_loop,
+            name="naver-auto-reply-worker",
+            daemon=True,
+        )
+        _NAVER_WORKER_THREAD.start()
+    logger.info(
+        "Naver auto-reply worker started interval=%ss tenant=%s",
+        max(5, settings.naver_autoreply_worker_interval_seconds),
+        settings.naver_autoreply_worker_tenant_id,
+    )
+    return True
+
+
+def stop_naver_autoreply_worker() -> None:
+    global _NAVER_WORKER_THREAD
+    with _NAVER_WORKER_LOCK:
+        thread = _NAVER_WORKER_THREAD
+        if not thread:
+            return
+        _NAVER_WORKER_STOP_EVENT.set()
+        thread.join(timeout=3)
+        _NAVER_WORKER_THREAD = None
+    logger.info("Naver auto-reply worker stopped.")
+
+
+@router.get("/naver/worker-status", response_model=NaverAutoReplyWorkerStatusResponse)
+def naver_worker_status() -> NaverAutoReplyWorkerStatusResponse:
+    settings = get_settings()
+    running = bool(_NAVER_WORKER_THREAD and _NAVER_WORKER_THREAD.is_alive())
+    return NaverAutoReplyWorkerStatusResponse(
+        enabled=bool(settings.naver_autoreply_worker_enabled),
+        running=running,
+        interval_seconds=max(5, settings.naver_autoreply_worker_interval_seconds),
+        page_size=max(1, min(settings.naver_autoreply_worker_page_size, 100)),
+        tenant_id=settings.naver_autoreply_worker_tenant_id or "tenant-demo",
+        last_result=_NAVER_WORKER_LAST_RESULT,
     )
 
 

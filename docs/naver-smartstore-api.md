@@ -5,6 +5,10 @@
 - `NAVER_COMMERCE_CLIENT_SECRET`
 - `NAVER_COMMERCE_BASE_URL` (기본값 `https://api.commerce.naver.com`)
 - `NAVER_AUTOREPLY_TOKEN` (선택, 자동답변 엔드포인트 보호용)
+- `NAVER_AUTOREPLY_WORKER_ENABLED` (기본 `true`)
+- `NAVER_AUTOREPLY_WORKER_INTERVAL_SECONDS` (기본 `15`)
+- `NAVER_AUTOREPLY_WORKER_PAGE_SIZE` (기본 `50`)
+- `NAVER_AUTOREPLY_WORKER_TENANT_ID` (기본 `tenant-demo`)
 
 ## 2) 토큰 발급 검증
 ```bash
@@ -77,6 +81,19 @@ curl -X POST "$API_BASE_URL/v1/tools/naver/auto-answer-drain" \
 ```bash
 * * * * * cd /path/to/repo && API_BASE_URL=https://agentr-fz0i.onrender.com NAVER_AUTOREPLY_TOKEN=... RUN_WINDOW_SECONDS=55 POLL_INTERVAL_SECONDS=10 bash scripts/naver_auto_reply_realtime.sh >> /var/log/naver_auto_reply.log 2>&1
 ```
+
+## 8) 서버 24시간 실시간 자동응답(권장)
+API 서버 시작 시 백그라운드 워커가 자동 실행되어 미답변 상품문의를 주기적으로 처리합니다.
+
+상태 확인:
+```bash
+curl "$API_BASE_URL/v1/tools/naver/worker-status"
+```
+
+권장:
+- 프로덕션 API 인스턴스 수 1 유지
+- 워커 주기 10~20초
+- 브라우저에는 `NAVER_AUTOREPLY_TOKEN` 노출 금지
 
 
 ## 참고

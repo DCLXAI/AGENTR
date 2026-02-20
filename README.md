@@ -20,6 +20,7 @@
 - FastAPI `POST /v1/tools/naver/inquiries/{inquiry_no}/answer`
 - FastAPI `POST /v1/tools/naver/auto-answer-once`
 - FastAPI `POST /v1/tools/naver/auto-answer-drain`
+- FastAPI `GET /v1/tools/naver/worker-status`
 - FastAPI `POST /v1/infra/sentry-test`
 - FastAPI `GET /ready` (의존성 readiness)
 - FastAPI `GET /static/faq_widget.js` (쇼핑몰 임베드 위젯)
@@ -98,6 +99,11 @@ POLL_INTERVAL_SECONDS=20 \
 bash scripts/naver_auto_reply_realtime.sh
 ```
 
+14. 서버 백그라운드 워커 상태 확인(24시간 자동응답)
+```bash
+curl "$API_BASE_URL/v1/tools/naver/worker-status"
+```
+
 ## Render 배포
 1. Blueprint
 - 파일: `render.yaml`
@@ -116,12 +122,14 @@ bash scripts/naver_auto_reply_realtime.sh
 - API: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `PINECONE_*`, `SUPABASE_*`, `TOKEN_ENCRYPTION_KEY`, `CORS_ALLOWED_ORIGINS`, `SWEETTRACKER_API_KEY`(또는 `DELIVERYAPI_KEY`)
 - Naver(선택): `NAVER_COMMERCE_CLIENT_ID`, `NAVER_COMMERCE_CLIENT_SECRET`, `NAVER_COMMERCE_BASE_URL`
 - Naver 자동응답 보호(선택): `NAVER_AUTOREPLY_TOKEN`
+- Naver 24시간 자동응답 워커: `NAVER_AUTOREPLY_WORKER_ENABLED=true`, `NAVER_AUTOREPLY_WORKER_INTERVAL_SECONDS=15`
 - API(운영): `SENTRY_DSN`, `INFRA_TEST_TOKEN`
 - `PINECONE_INDEX_HOST`를 설정하면 ingest/ready에서 제어 플레인 DNS 이슈를 우회할 수 있습니다.
 - `CREWAI_REVIEW_ENABLED=false`가 기본이며, `true`로 켜면 LLM 검수 워커를 활성화합니다.
 - `EMBEDDING_PROVIDER=gemini`로 두면 OpenAI quota 없이도 벡터 적재를 진행할 수 있습니다.
 - Console: `API_BASE_URL`
 - 고객 브라우저에는 `NAVER_AUTOREPLY_TOKEN`을 노출하지 않습니다. 자동응답 토큰은 서버/스케줄러에서만 사용합니다.
+- 운영 권장: API 서비스 인스턴스를 1개로 유지해 워커 중복 실행을 방지합니다.
 
 5. CI Secret
 - `RENDER_API_DEPLOY_HOOK_STAGING`
