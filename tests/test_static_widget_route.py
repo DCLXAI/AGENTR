@@ -35,6 +35,7 @@ def test_static_homepage_is_served() -> None:
     assert "AGENTR 실시간 데모" in response.text
     assert "/v1/tools/naver/auto-answer-once" in response.text
     assert "/v1/tools/naver/public-demo-feed" in response.text
+    assert "스마트스토어 QnA 실시간 보드" in response.text
 
 
 def test_root_redirects_to_homepage() -> None:
