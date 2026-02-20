@@ -248,8 +248,8 @@ def test_naver_auto_answer_once_tracking_api_error_uses_safe_answer(monkeypatch)
     monkeypatch.setattr(tools, "NaverCommerceClient", lambda: _FakeNaverClientWithUnanswered())
     monkeypatch.setattr(
         tools,
-        "_generate_naver_safe_answer",
-        lambda question, product_name=None: f"{product_name}:{question}:배송 예외 안전 답변",
+        "_tracking_api_delay_answer",
+        lambda product_name=None: f"{product_name}:배송 예외 고정 템플릿",
     )
     monkeypatch.setattr(
         tools,
@@ -270,7 +270,7 @@ def test_naver_auto_answer_once_tracking_api_error_uses_safe_answer(monkeypatch)
     payload = response.json()
     assert payload["status"] == "ok"
     assert payload["posted"] is True
-    assert payload["answer"] == "GPT PRO:CJ 운송장번호 300721306294인데 배송 어디쯤인가요?:배송 예외 안전 답변"
+    assert payload["answer"] == "GPT PRO:배송 예외 고정 템플릿"
     assert payload["why_fallback"] is None
     assert called["posted"] is True
 

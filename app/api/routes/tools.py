@@ -228,6 +228,15 @@ def _rule_based_naver_answer(question: str, product_name: str | None = None) -> 
     )
 
 
+def _tracking_api_delay_answer(product_name: str | None = None) -> str:
+    product_prefix = f"[{product_name}] " if product_name else ""
+    return (
+        f"{product_prefix}운송장 조회 시스템 지연으로 현재 위치를 즉시 확인하지 못했습니다. "
+        "잠시 후 다시 조회해 주세요. 주문번호를 남겨주시면 확인 후 안내드리겠습니다. "
+        "추가로 궁금하신 점 있으신가요?"
+    )
+
+
 def _generate_naver_safe_answer(question: str, product_name: str | None = None) -> str:
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -417,7 +426,10 @@ def _run_naver_auto_answer_once(payload: NaverAutoAnswerRequest) -> NaverAutoAns
 
     if needs_human or why_fallback in (safe_fallback_codes | blocked_fallback_codes):
         if why_fallback in safe_fallback_codes:
-            generated_answer = _generate_naver_safe_answer(question=question, product_name=product_name)
+            if why_fallback == FallbackCode.TRACKING_API_ERROR.value:
+                generated_answer = _tracking_api_delay_answer(product_name=product_name)
+            else:
+                generated_answer = _generate_naver_safe_answer(question=question, product_name=product_name)
             needs_human = False
             why_fallback = None
         else:
