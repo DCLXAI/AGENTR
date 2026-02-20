@@ -282,6 +282,7 @@ def test_naver_auto_answer_once_requires_token_when_configured(monkeypatch) -> N
             app_env="dev",
             service_name="api",
             naver_autoreply_token="secret-token",
+            infra_test_token="infra-token",
         ),
     )
     app = create_app()
@@ -297,6 +298,13 @@ def test_naver_auto_answer_once_requires_token_when_configured(monkeypatch) -> N
     )
     # downstream Naver mock is not patched, so auth gate 통과 여부만 확인
     assert response_ok.status_code != 401
+
+    response_infra_ok = client.post(
+        "/v1/tools/naver/auto-answer-once",
+        headers={"x-naver-autoreply-token": "infra-token"},
+        json={"dry_run": True},
+    )
+    assert response_infra_ok.status_code != 401
 
 
 def test_naver_auto_answer_drain_stops_on_noop(monkeypatch) -> None:
@@ -368,4 +376,3 @@ def test_naver_auto_answer_drain_requires_token_when_configured(monkeypatch) -> 
 
     response = client.post("/v1/tools/naver/auto-answer-drain", json={"max_iterations": 1})
     assert response.status_code == 401
-
