@@ -225,6 +225,56 @@ def test_naver_auto_answer_once_runtime_fallback_uses_safe_answer(monkeypatch) -
     assert called["posted"] is True
 
 
+def test_naver_auto_answer_once_tracking_api_error_uses_safe_answer(monkeypatch) -> None:
+    called = {"posted": False}
+
+    class _FakeNaverClientWithUnanswered(_FakeNaverClient):
+        def list_qnas(self, **kwargs):
+            return {
+                "contents": [
+                    {
+                        "questionId": 663840867,
+                        "question": "CJ 운송장번호 300721306294인데 배송 어디쯤인가요?",
+                        "productName": "GPT PRO",
+                        "answered": False,
+                    }
+                ]
+            }
+
+        def answer_qna(self, question_id: str | int, answer_text: str):
+            called["posted"] = True
+            return {"questionId": str(question_id), "commentContent": answer_text}
+
+    monkeypatch.setattr(tools, "NaverCommerceClient", lambda: _FakeNaverClientWithUnanswered())
+    monkeypatch.setattr(
+        tools,
+        "_generate_naver_safe_answer",
+        lambda question, product_name=None: f"{product_name}:{question}:배송 예외 안전 답변",
+    )
+    monkeypatch.setattr(
+        tools,
+        "run_support_flow",
+        lambda **kwargs: {
+            "answer": "배송 시스템 응답이 지연되고 있습니다.",
+            "intent": "tracking",
+            "confidence": 0.9,
+            "needs_human": True,
+            "why_fallback": "tracking_api_error",
+        },
+    )
+
+    app = create_app()
+    client = TestClient(app)
+    response = client.post("/v1/tools/naver/auto-answer-once", json={})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert payload["posted"] is True
+    assert payload["answer"] == "GPT PRO:CJ 운송장번호 300721306294인데 배송 어디쯤인가요?:배송 예외 안전 답변"
+    assert payload["why_fallback"] is None
+    assert called["posted"] is True
+
+
 def test_naver_auto_answer_once_blocks_review_rejected(monkeypatch) -> None:
     class _FakeNaverClientWithUnanswered(_FakeNaverClient):
         def list_qnas(self, **kwargs):

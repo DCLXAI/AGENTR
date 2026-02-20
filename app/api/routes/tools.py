@@ -406,15 +406,17 @@ def _run_naver_auto_answer_once(payload: NaverAutoAnswerRequest) -> NaverAutoAns
             why_fallback=why_fallback,
         )
 
-    if needs_human or why_fallback in {
+    safe_fallback_codes = {
         FallbackCode.RUNTIME_CONFIG_MISSING.value,
         FallbackCode.CLARIFY_LOW_CONFIDENCE.value,
+        FallbackCode.TRACKING_API_ERROR.value,
+    }
+    blocked_fallback_codes = {
         FallbackCode.REVIEW_REJECTED.value,
-    }:
-        if why_fallback in {
-            FallbackCode.RUNTIME_CONFIG_MISSING.value,
-            FallbackCode.CLARIFY_LOW_CONFIDENCE.value,
-        }:
+    }
+
+    if needs_human or why_fallback in (safe_fallback_codes | blocked_fallback_codes):
+        if why_fallback in safe_fallback_codes:
             generated_answer = _generate_naver_safe_answer(question=question, product_name=product_name)
             needs_human = False
             why_fallback = None
