@@ -21,6 +21,7 @@ def test_static_mvp_demo_page_is_served() -> None:
     assert response.status_code == 200
     assert "쇼핑몰 CS 자동화 MVP 데모" in response.text
     assert "/v1/chat/query" in response.text
+    assert "실시간 문의 자동응답 모니터" in response.text
 
 
 def test_root_redirects_to_mvp_demo() -> None:

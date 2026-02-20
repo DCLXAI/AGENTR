@@ -61,6 +61,7 @@
       padding: 14px;
       box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
     }
+    .card.wide { grid-column: 1 / -1; }
     .card h2 {
       margin: 0 0 10px;
       font-size: 16px;
@@ -119,6 +120,37 @@
       color: var(--muted);
       margin-top: 8px;
       line-height: 1.45;
+    }
+    .live-status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .live-timeline {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .live-item {
+      border: 1px solid #d9e3ee;
+      border-radius: 10px;
+      padding: 10px;
+      background: #f8fbff;
+    }
+    .live-item .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .live-item .q {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .live-item .a {
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-wrap;
     }
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
@@ -204,6 +236,31 @@
           운영 시에는 GitHub Actions 스케줄러(`naver-auto-reply.yml`)로 5분 주기 자동 실행 가능합니다.
         </p>
       </article>
+
+      <article class="card wide">
+        <h2>5) 실시간 문의 자동응답 모니터</h2>
+        <div class="row">
+          <div>
+            <label for="liveIntervalSec">poll 주기(초)</label>
+            <input id="liveIntervalSec" type="number" min="3" max="60" value="5" />
+          </div>
+          <div>
+            <label for="liveMaxItems">표시 개수</label>
+            <input id="liveMaxItems" type="number" min="1" max="30" value="10" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btnLiveStart">실시간 모니터 시작</button>
+          <button class="alt" id="btnLiveStop">중지</button>
+          <button class="sky" id="btnLivePollNow">지금 1회 실행</button>
+        </div>
+        <div class="live-status" id="liveStatus">대기 중</div>
+        <div class="live-timeline" id="liveTimeline"></div>
+        <pre id="liveOut">{}</pre>
+        <p class="hint">
+          동작 방식: 브라우저가 주기적으로 `/v1/tools/naver/auto-answer-once`를 호출하고, 실제 등록된 답변을 타임라인에 누적 표시합니다.
+        </p>
+      </article>
     </section>
   </div>
 
@@ -222,6 +279,11 @@
     const chatOut = document.getElementById("chatOut");
     const qnaOut = document.getElementById("qnaOut");
     const drainOut = document.getElementById("drainOut");
+    const liveOut = document.getElementById("liveOut");
+    const liveStatus = document.getElementById("liveStatus");
+    const liveTimeline = document.getElementById("liveTimeline");
+    const liveSeenQuestionIds = new Set();
+    let liveTimer = null;
 
     document.getElementById("btnHealth").onclick = async () => {
       const out = await callJson("/health");
@@ -295,6 +357,94 @@
         body: JSON.stringify(payload),
       });
       drainOut.textContent = pretty(out);
+    };
+
+    function setLiveStatus(text) {
+      liveStatus.textContent = text;
+    }
+
+    function renderLiveEvent(item) {
+      const maxItems = Number(document.getElementById("liveMaxItems").value || 10);
+      const eventNode = document.createElement("div");
+      eventNode.className = "live-item";
+      eventNode.innerHTML = `
+        <div class="meta">${item.time} / question_id=${item.question_id}</div>
+        <div class="q">Q. ${item.question}</div>
+        <div class="a">A. ${item.answer}</div>
+      `;
+      liveTimeline.prepend(eventNode);
+      while (liveTimeline.children.length > maxItems) {
+        liveTimeline.removeChild(liveTimeline.lastChild);
+      }
+    }
+
+    async function runLivePollOnce() {
+      const token = document.getElementById("autoToken").value.trim();
+      const headers = { "content-type": "application/json" };
+      if (token) headers["x-naver-autoreply-token"] = token;
+
+      const payload = {
+        tenant_id: document.getElementById("tenantId").value.trim() || "tenant-demo",
+        session_id_prefix: "mvp-live-auto",
+        dry_run: false,
+      };
+
+      const out = await callJson("/v1/tools/naver/auto-answer-once", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+      liveOut.textContent = pretty(out);
+
+      if (out.status !== 200) {
+        setLiveStatus(`오류: auto-answer 호출 실패 (${out.status})`);
+        return;
+      }
+
+      const body = out.body || {};
+      const questionId = String(body.question_id || "").trim();
+
+      if (body.status === "ok" && body.posted === true && questionId && !liveSeenQuestionIds.has(questionId)) {
+        liveSeenQuestionIds.add(questionId);
+        renderLiveEvent({
+          time: new Date().toLocaleString("ko-KR"),
+          question_id: questionId,
+          question: String(body.question || ""),
+          answer: String(body.answer || ""),
+        });
+        setLiveStatus(`답변 등록 완료: question_id=${questionId}`);
+        return;
+      }
+
+      if (body.reason === "no_unanswered_qna") {
+        setLiveStatus("미답변 문의 대기 중...");
+      } else if (body.reason) {
+        setLiveStatus(`실행 결과: ${body.reason}`);
+      } else {
+        setLiveStatus("실행 완료");
+      }
+    }
+
+    document.getElementById("btnLivePollNow").onclick = async () => {
+      await runLivePollOnce();
+    };
+
+    document.getElementById("btnLiveStart").onclick = async () => {
+      if (liveTimer) {
+        clearInterval(liveTimer);
+      }
+      const intervalSec = Math.max(3, Number(document.getElementById("liveIntervalSec").value || 5));
+      setLiveStatus(`실시간 모니터 실행 중 (${intervalSec}초 주기)`);
+      await runLivePollOnce();
+      liveTimer = setInterval(runLivePollOnce, intervalSec * 1000);
+    };
+
+    document.getElementById("btnLiveStop").onclick = () => {
+      if (liveTimer) {
+        clearInterval(liveTimer);
+        liveTimer = null;
+      }
+      setLiveStatus("중지됨");
     };
   </script>
 </body>
