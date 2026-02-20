@@ -4,9 +4,26 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+    inputs:
+      run_window_seconds:
+        description: "한 번 실행 시 반복 폴링 유지 시간(초)"
+        required: false
+        default: "280"
+      poll_interval_seconds:
+        description: "반복 폴링 간격(초)"
+        required: false
+        default: "20"
+      max_iterations:
+        description: "각 폴링에서 drain 최대 처리 건수"
+        required: false
+        default: "20"
 
 permissions:
   contents: read
+
+concurrency:
+  group: naver-auto-reply-prod
+  cancel-in-progress: true
 
 jobs:
   auto-reply:
@@ -15,19 +32,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Naver auto-reply drain
+      - name: Validate required secrets
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL_PROD }}
+          NAVER_AUTOREPLY_TOKEN: ${{ secrets.NAVER_AUTOREPLY_TOKEN }}
+        run: |
+          test -n "$API_BASE_URL" || (echo "Missing secret API_BASE_URL_PROD" >&2; exit 1)
+          test -n "$NAVER_AUTOREPLY_TOKEN" || (echo "Missing secret NAVER_AUTOREPLY_TOKEN" >&2; exit 1)
+
+      - name: Run Naver auto-reply realtime window
         env:
           API_BASE_URL: ${{ secrets.API_BASE_URL_PROD }}
           NAVER_AUTOREPLY_TOKEN: ${{ secrets.NAVER_AUTOREPLY_TOKEN }}
           TENANT_ID: tenant-demo
-          SESSION_ID_PREFIX: naver-auto-cron
-          MAX_ITERATIONS: 20
+          SESSION_ID_PREFIX_BASE: naver-auto-cron
+          MAX_ITERATIONS: ${{ github.event.inputs.max_iterations || '20' }}
           PAGE: 1
           SIZE: 50
           DRY_RUN: "false"
+          RUN_WINDOW_SECONDS: ${{ github.event.inputs.run_window_seconds || '280' }}
+          POLL_INTERVAL_SECONDS: ${{ github.event.inputs.poll_interval_seconds || '20' }}
+          ALLOW_BLOCKED_EXIT: "true"
         run: |
-          test -n "$API_BASE_URL" || (echo "Missing secret API_BASE_URL_PROD" >&2; exit 1)
-          bash scripts/naver_auto_reply_drain.sh | tee /tmp/naver_auto_reply_summary.json
+          chmod +x scripts/naver_auto_reply_drain.sh scripts/naver_auto_reply_realtime.sh
+          bash scripts/naver_auto_reply_realtime.sh | tee /tmp/naver_auto_reply_summary.json
 
       - name: Append summary
         run: |

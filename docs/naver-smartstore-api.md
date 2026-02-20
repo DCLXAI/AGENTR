@@ -64,11 +64,22 @@ curl -X POST "$API_BASE_URL/v1/tools/naver/auto-answer-drain" \
 
 ## 7) 주기 자동화
 - 스크립트: `scripts/naver_auto_reply_drain.sh`
-- GitHub Actions: `.github/workflows/naver-auto-reply.yml` (5분 주기)
-- 필수 시크릿: `API_BASE_URL_PROD`
-- 선택 시크릿: `NAVER_AUTOREPLY_TOKEN`
+- 준실시간 스크립트: `scripts/naver_auto_reply_realtime.sh`
+- GitHub Actions: `.github/workflows/naver-auto-reply.yml` (5분 스케줄 + 실행 내 반복 폴링)
+- 필수 시크릿: `API_BASE_URL_PROD`, `NAVER_AUTOREPLY_TOKEN`
+
+권장 파라미터:
+- `RUN_WINDOW_SECONDS=280`
+- `POLL_INTERVAL_SECONDS=20`
+- `MAX_ITERATIONS=20`
+
+서버 cron 예시:
+```bash
+* * * * * cd /path/to/repo && API_BASE_URL=https://agentr-fz0i.onrender.com NAVER_AUTOREPLY_TOKEN=... RUN_WINDOW_SECONDS=55 POLL_INTERVAL_SECONDS=10 bash scripts/naver_auto_reply_realtime.sh >> /var/log/naver_auto_reply.log 2>&1
+```
 
 
 ## 참고
 - 토큰 발급은 Naver Commerce OAuth 규격(`client_secret_sign`)을 사용합니다.
 - 실제 문의 엔드포인트의 파라미터/권한은 네이버 앱 권한 설정 상태에 따라 달라질 수 있습니다.
+- `NAVER_AUTOREPLY_TOKEN`은 서버/스케줄러에서만 사용하고 브라우저에 노출하지 않습니다.

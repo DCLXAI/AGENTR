@@ -89,6 +89,15 @@ API_BASE_URL=https://agentr-fz0i.onrender.com bash scripts/demo_public.sh
 API_BASE_URL=https://agentr-fz0i.onrender.com NAVER_AUTOREPLY_TOKEN=... bash scripts/naver_auto_reply_drain.sh
 ```
 
+13. 네이버 문의 준실시간 자동응답(서버 cron/GitHub Actions 공용)
+```bash
+API_BASE_URL=https://agentr-fz0i.onrender.com \
+NAVER_AUTOREPLY_TOKEN=... \
+RUN_WINDOW_SECONDS=280 \
+POLL_INTERVAL_SECONDS=20 \
+bash scripts/naver_auto_reply_realtime.sh
+```
+
 ## Render 배포
 1. Blueprint
 - 파일: `render.yaml`
@@ -112,6 +121,7 @@ API_BASE_URL=https://agentr-fz0i.onrender.com NAVER_AUTOREPLY_TOKEN=... bash scr
 - `CREWAI_REVIEW_ENABLED=false`가 기본이며, `true`로 켜면 LLM 검수 워커를 활성화합니다.
 - `EMBEDDING_PROVIDER=gemini`로 두면 OpenAI quota 없이도 벡터 적재를 진행할 수 있습니다.
 - Console: `API_BASE_URL`
+- 고객 브라우저에는 `NAVER_AUTOREPLY_TOKEN`을 노출하지 않습니다. 자동응답 토큰은 서버/스케줄러에서만 사용합니다.
 
 5. CI Secret
 - `RENDER_API_DEPLOY_HOOK_STAGING`
@@ -137,3 +147,4 @@ API_BASE_URL=https://agentr-fz0i.onrender.com NAVER_AUTOREPLY_TOKEN=... bash scr
 - 데모 문서: `docs/public-demo-playbook.md`
 - 쇼핑몰 임베드 문서: `docs/cafe24-faq-widget.md`
 - 네이버 연동 문서: `docs/naver-smartstore-api.md`
+- 자동응답 스케줄러: `.github/workflows/naver-auto-reply.yml`

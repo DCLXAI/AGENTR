@@ -9,6 +9,7 @@ PAGE="${PAGE:-1}"
 SIZE="${SIZE:-50}"
 DRY_RUN="${DRY_RUN:-false}"
 NAVER_AUTOREPLY_TOKEN="${NAVER_AUTOREPLY_TOKEN:-}"
+ALLOW_BLOCKED_EXIT="${ALLOW_BLOCKED_EXIT:-false}"
 
 if command -v python3 >/dev/null 2>&1; then
   PYTHON_BIN="python3"
@@ -48,12 +49,13 @@ curl -fsS \
   --data "$payload" \
   > "$tmp_body"
 
-"$PYTHON_BIN" - <<'PY' "$tmp_body"
+"$PYTHON_BIN" - <<'PY' "$tmp_body" "$ALLOW_BLOCKED_EXIT"
 import json
 import sys
 from pathlib import Path
 
 body = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+allow_blocked = str(sys.argv[2]).strip().lower() == "true"
 status = body.get("status")
 processed = body.get("processed")
 posted = body.get("posted")
@@ -73,6 +75,6 @@ print(
     )
 )
 
-if status == "blocked":
+if status == "blocked" and not allow_blocked:
     raise SystemExit("auto-reply blocked; check results payload")
 PY
