@@ -31,11 +31,20 @@ def test_static_homepage_is_served() -> None:
     response = client.get("/static/homepage.html")
     assert response.status_code == 200
     assert "네이버 스마트스토어 Q&A 자동화 솔루션" in response.text
-    assert "AutoCS" in response.text
-    assert "AGENTR 실시간 데모" in response.text
-    assert "/v1/tools/naver/auto-answer-once" in response.text
+    assert "AGENTR" in response.text
+    assert "AGENTR 실시간 문의 감지 타임라인" in response.text
     assert "/v1/tools/naver/public-demo-feed" in response.text
-    assert "스마트스토어 QnA 실시간 보드" in response.text
+    assert "14일 무료 체험 시작하기" in response.text
+
+
+def test_static_apply_page_is_served() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.get("/static/apply.html")
+    assert response.status_code == 200
+    assert "AGENTR 무료 체험 신청" in response.text
+    assert "/v1/leads/signup" in response.text
 
 
 def test_root_redirects_to_homepage() -> None:

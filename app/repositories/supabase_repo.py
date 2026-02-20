@@ -120,6 +120,21 @@ class SupabaseRepository:
             }
         ).execute()
 
+    def save_lead_signup(self, *, email: str, source: str, metadata: dict[str, Any] | None = None) -> bool:
+        if not self._client:
+            return False
+        payload = {
+            "email": email,
+            "source": source,
+            "metadata": metadata or {},
+            "created_at": datetime.now(tz=timezone.utc).isoformat(),
+        }
+        try:
+            self._client.table("lead_signups").insert(payload).execute()
+            return True
+        except Exception:
+            return False
+
     def get_cafe24_refresh_token(self, tenant_id: str) -> str | None:
         if not self._client:
             return None

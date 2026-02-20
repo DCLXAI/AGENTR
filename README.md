@@ -21,6 +21,7 @@
 - FastAPI `POST /v1/tools/naver/auto-answer-once`
 - FastAPI `POST /v1/tools/naver/auto-answer-drain`
 - FastAPI `GET /v1/tools/naver/worker-status`
+- FastAPI `POST /v1/leads/signup`
 - FastAPI `POST /v1/infra/sentry-test`
 - FastAPI `GET /ready` (의존성 readiness)
 - FastAPI `GET /static/faq_widget.js` (쇼핑몰 임베드 위젯)

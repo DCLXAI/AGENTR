@@ -48,6 +48,14 @@ create table if not exists rag_ingest_jobs (
   created_at timestamptz not null default now()
 );
 
+create table if not exists lead_signups (
+  id bigserial primary key,
+  email text not null,
+  source text not null default 'homepage',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 alter table conversation_logs add column if not exists why_fallback text;
 alter table tool_call_logs add column if not exists why_fallback text;
 alter table rag_ingest_jobs add column if not exists why_fallback text;
@@ -55,3 +63,6 @@ alter table rag_ingest_jobs add column if not exists why_fallback text;
 create index if not exists idx_conversation_logs_fallback
 on conversation_logs (why_fallback, created_at desc)
 where why_fallback is not null;
+
+create index if not exists idx_lead_signups_created_at
+on lead_signups (created_at desc);

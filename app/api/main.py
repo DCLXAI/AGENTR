@@ -9,6 +9,7 @@ from fastapi.responses import RedirectResponse
 from app.api.routes.chat import router as chat_router
 from app.api.routes.infra import router as infra_router
 from app.api.routes.infra_test import router as infra_test_router
+from app.api.routes.leads import router as leads_router
 from app.api.routes.rag import router as rag_router
 from app.api.routes.tools import (
     router as tools_router,
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(chat_router)
     app.include_router(infra_router)
     app.include_router(infra_test_router)
+    app.include_router(leads_router)
     app.include_router(rag_router)
     app.include_router(tools_router)
 
