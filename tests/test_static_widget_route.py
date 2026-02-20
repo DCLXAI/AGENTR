@@ -32,6 +32,8 @@ def test_static_homepage_is_served() -> None:
     assert response.status_code == 200
     assert "네이버 스마트스토어 Q&A 자동화 솔루션" in response.text
     assert "AutoCS" in response.text
+    assert "AGENTR 실시간 데모" in response.text
+    assert "/v1/tools/naver/auto-answer-once" in response.text
 
 
 def test_root_redirects_to_homepage() -> None:
