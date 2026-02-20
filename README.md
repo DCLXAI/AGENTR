@@ -9,10 +9,17 @@
 - Multi-LLM 라우팅 (기본 `Gemini` + 장애/오류 시 `OpenAI` 폴백)
 - 임베딩도 `Gemini` 기본 (`models/gemini-embedding-001`, 1536)
 - 배송조회 API 툴 연동(재시도/백오프)
+- 네이버 커머스 OAuth 토큰 체크 + QnA 조회/답변 툴 엔드포인트
 - LangGraph 실시간 CS 플로우 + CrewAI 검수 워커(폴백 지원)
 - FastAPI `POST /v1/chat/query`
 - FastAPI `POST /v1/rag/ingest`
 - FastAPI `POST /v1/tools/track-delivery`
+- FastAPI `POST /v1/tools/naver/token-check`
+- FastAPI `GET /v1/tools/naver/qnas`
+- FastAPI `POST /v1/tools/naver/qnas/{question_id}/answer`
+- FastAPI `POST /v1/tools/naver/inquiries/{inquiry_no}/answer`
+- FastAPI `POST /v1/tools/naver/auto-answer-once`
+- FastAPI `POST /v1/tools/naver/auto-answer-drain`
 - FastAPI `POST /v1/infra/sentry-test`
 - FastAPI `GET /ready` (의존성 readiness)
 - FastAPI `GET /static/faq_widget.js` (쇼핑몰 임베드 위젯)
@@ -77,6 +84,11 @@ SUPABASE_DB_URL=postgresql://... python scripts/check_schema.py
 API_BASE_URL=https://agentr-fz0i.onrender.com bash scripts/demo_public.sh
 ```
 
+12. 네이버 문의 자동응답 드레인(선택)
+```bash
+API_BASE_URL=https://agentr-fz0i.onrender.com NAVER_AUTOREPLY_TOKEN=... bash scripts/naver_auto_reply_drain.sh
+```
+
 ## Render 배포
 1. Blueprint
 - 파일: `render.yaml`
@@ -93,6 +105,8 @@ API_BASE_URL=https://agentr-fz0i.onrender.com bash scripts/demo_public.sh
 
 4. 필수 환경변수
 - API: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `PINECONE_*`, `SUPABASE_*`, `TOKEN_ENCRYPTION_KEY`, `CORS_ALLOWED_ORIGINS`, `SWEETTRACKER_API_KEY`(또는 `DELIVERYAPI_KEY`)
+- Naver(선택): `NAVER_COMMERCE_CLIENT_ID`, `NAVER_COMMERCE_CLIENT_SECRET`, `NAVER_COMMERCE_BASE_URL`
+- Naver 자동응답 보호(선택): `NAVER_AUTOREPLY_TOKEN`
 - API(운영): `SENTRY_DSN`, `INFRA_TEST_TOKEN`
 - `PINECONE_INDEX_HOST`를 설정하면 ingest/ready에서 제어 플레인 DNS 이슈를 우회할 수 있습니다.
 - `CREWAI_REVIEW_ENABLED=false`가 기본이며, `true`로 켜면 LLM 검수 워커를 활성화합니다.
@@ -122,3 +136,4 @@ API_BASE_URL=https://agentr-fz0i.onrender.com bash scripts/demo_public.sh
 - 운영 문서: `docs/infra-runbook.md`, `docs/release-checklist.md`
 - 데모 문서: `docs/public-demo-playbook.md`
 - 쇼핑몰 임베드 문서: `docs/cafe24-faq-widget.md`
+- 네이버 연동 문서: `docs/naver-smartstore-api.md`

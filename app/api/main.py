@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 
 from app.api.routes.chat import router as chat_router
 from app.api.routes.infra import router as infra_router
@@ -33,6 +34,10 @@ def create_app() -> FastAPI:
     app.include_router(infra_test_router)
     app.include_router(rag_router)
     app.include_router(tools_router)
+
+    @app.get("/")
+    def root() -> RedirectResponse:
+        return RedirectResponse(url="/static/mvp_demo.html", status_code=307)
 
     @app.get("/health")
     def health() -> dict[str, str]:

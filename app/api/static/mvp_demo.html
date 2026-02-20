@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shop AI MVP Demo</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #dbe2ea;
+      --brand: #146c43;
+      --brand-2: #0ea5e9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(14,165,233,0.12), transparent 35%),
+        radial-gradient(circle at 80% 0%, rgba(20,108,67,0.12), transparent 40%),
+        var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 16px 40px;
+    }
+    .hero {
+      background: linear-gradient(120deg, rgba(20,108,67,0.95), rgba(14,165,233,0.92));
+      color: #fff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      margin: 0;
+      opacity: 0.95;
+      line-height: 1.5;
+    }
+    .grid {
+      margin-top: 16px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .row {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 8px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--muted);
+    }
+    input, textarea {
+      width: 100%;
+      border: 1px solid #c7d2df;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--brand);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button.alt { background: #0f172a; }
+    button.sky { background: var(--brand-2); }
+    pre {
+      margin: 10px 0 0;
+      background: #0b1220;
+      color: #d9e5ff;
+      border-radius: 10px;
+      padding: 10px;
+      overflow: auto;
+      min-height: 84px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 23px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>쇼핑몰 CS 자동화 MVP 데모</h1>
+      <p>의도분류 + RAG + 배송조회 + 네이버 QnA 자동응답을 한 화면에서 테스트합니다.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>1) 상태 체크</h2>
+        <div class="actions">
+          <button id="btnHealth">/health</button>
+          <button class="alt" id="btnReady">/ready</button>
+        </div>
+        <pre id="statusOut">{}</pre>
+      </article>
+
+      <article class="card">
+        <h2>2) 고객 문의 챗 테스트</h2>
+        <div class="row">
+          <div>
+            <label for="tenantId">tenant_id</label>
+            <input id="tenantId" value="tenant-demo" />
+          </div>
+          <div>
+            <label for="sessionId">session_id</label>
+            <input id="sessionId" value="mvp-demo-session" />
+          </div>
+        </div>
+        <label for="userMsg">user_message</label>
+        <textarea id="userMsg">반품은 수령 후 며칠 이내에 가능한가요?</textarea>
+        <div class="actions">
+          <button id="btnChat">/v1/chat/query 실행</button>
+          <button class="sky" id="btnQnaSample">QnA 샘플 질문</button>
+        </div>
+        <pre id="chatOut">{}</pre>
+      </article>
+
+      <article class="card">
+        <h2>3) 네이버 QnA 자동응답 (1건)</h2>
+        <div class="row">
+          <div>
+            <label for="autoToken">x-naver-autoreply-token (옵션)</label>
+            <input id="autoToken" placeholder="설정 시 입력" />
+          </div>
+          <div>
+            <label for="questionId">question_id (옵션)</label>
+            <input id="questionId" placeholder="비우면 미답변 1건 자동 선택" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btnAutoOnce">/v1/tools/naver/auto-answer-once</button>
+          <button class="alt" id="btnListQna">/v1/tools/naver/qnas</button>
+        </div>
+        <pre id="qnaOut">{}</pre>
+      </article>
+
+      <article class="card">
+        <h2>4) 네이버 QnA 일괄 드레인</h2>
+        <div class="row">
+          <div>
+            <label for="maxIterations">max_iterations</label>
+            <input id="maxIterations" type="number" min="1" max="100" value="20" />
+          </div>
+          <div>
+            <label for="dryRun">dry_run</label>
+            <input id="dryRun" value="false" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btnDrain">/v1/tools/naver/auto-answer-drain</button>
+        </div>
+        <pre id="drainOut">{}</pre>
+        <p class="hint">
+          운영 시에는 GitHub Actions 스케줄러(`naver-auto-reply.yml`)로 5분 주기 자동 실행 가능합니다.
+        </p>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    const baseUrl = window.location.origin;
+    const pretty = (v) => JSON.stringify(v, null, 2);
+
+    async function callJson(path, options = {}) {
+      const res = await fetch(baseUrl + path, options);
+      let body = {};
+      try { body = await res.json(); } catch (_e) { body = { raw: await res.text() }; }
+      return { status: res.status, headers: Object.fromEntries(res.headers.entries()), body };
+    }
+
+    const statusOut = document.getElementById("statusOut");
+    const chatOut = document.getElementById("chatOut");
+    const qnaOut = document.getElementById("qnaOut");
+    const drainOut = document.getElementById("drainOut");
+
+    document.getElementById("btnHealth").onclick = async () => {
+      const out = await callJson("/health");
+      statusOut.textContent = pretty(out);
+    };
+    document.getElementById("btnReady").onclick = async () => {
+      const out = await callJson("/ready");
+      statusOut.textContent = pretty(out);
+    };
+
+    document.getElementById("btnQnaSample").onclick = () => {
+      document.getElementById("userMsg").value = "지금 주문하면 언제 도착하나요?";
+    };
+
+    document.getElementById("btnChat").onclick = async () => {
+      const payload = {
+        tenant_id: document.getElementById("tenantId").value.trim(),
+        session_id: document.getElementById("sessionId").value.trim(),
+        user_message: document.getElementById("userMsg").value.trim(),
+      };
+      const out = await callJson("/v1/chat/query", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      chatOut.textContent = pretty(out);
+    };
+
+    document.getElementById("btnListQna").onclick = async () => {
+      const out = await callJson("/v1/tools/naver/qnas?page=1&size=20");
+      qnaOut.textContent = pretty(out);
+    };
+
+    document.getElementById("btnAutoOnce").onclick = async () => {
+      const token = document.getElementById("autoToken").value.trim();
+      const questionId = document.getElementById("questionId").value.trim();
+      const headers = { "content-type": "application/json" };
+      if (token) headers["x-naver-autoreply-token"] = token;
+
+      const payload = {
+        tenant_id: document.getElementById("tenantId").value.trim() || "tenant-demo",
+        session_id_prefix: "mvp-demo-auto",
+        dry_run: false,
+      };
+      if (questionId) payload.question_id = questionId;
+
+      const out = await callJson("/v1/tools/naver/auto-answer-once", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+      qnaOut.textContent = pretty(out);
+    };
+
+    document.getElementById("btnDrain").onclick = async () => {
+      const token = document.getElementById("autoToken").value.trim();
+      const headers = { "content-type": "application/json" };
+      if (token) headers["x-naver-autoreply-token"] = token;
+
+      const payload = {
+        tenant_id: document.getElementById("tenantId").value.trim() || "tenant-demo",
+        session_id_prefix: "mvp-demo-drain",
+        max_iterations: Number(document.getElementById("maxIterations").value || 20),
+        page: 1,
+        size: 50,
+        dry_run: String(document.getElementById("dryRun").value).trim().toLowerCase() === "true",
+      };
+      const out = await callJson("/v1/tools/naver/auto-answer-drain", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+      drainOut.textContent = pretty(out);
+    };
+  </script>
+</body>
+</html>

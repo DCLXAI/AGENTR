@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     cafe24_mall_id: str = Field(default="")
     cafe24_client_id: str = Field(default="")
     cafe24_client_secret: str = Field(default="")
+    naver_commerce_client_id: str = Field(default="")
+    naver_commerce_client_secret: str = Field(default="")
+    naver_commerce_base_url: str = "https://api.commerce.naver.com"
+    naver_autoreply_token: str = Field(default="")
 
     supabase_url: str = Field(default="")
     supabase_service_role_key: str = Field(default="")

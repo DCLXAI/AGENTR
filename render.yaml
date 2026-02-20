@@ -41,6 +41,8 @@ services:
         sync: false
       - key: INFRA_TEST_TOKEN
         sync: false
+      - key: NAVER_AUTOREPLY_TOKEN
+        sync: false
 
   - type: web
     name: shop-ai-console

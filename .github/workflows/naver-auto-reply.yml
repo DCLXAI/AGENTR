@@ -1,0 +1,35 @@
+name: Naver Auto Reply
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auto-reply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Naver auto-reply drain
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL_PROD }}
+          NAVER_AUTOREPLY_TOKEN: ${{ secrets.NAVER_AUTOREPLY_TOKEN }}
+          TENANT_ID: tenant-demo
+          SESSION_ID_PREFIX: naver-auto-cron
+          MAX_ITERATIONS: 20
+          PAGE: 1
+          SIZE: 50
+          DRY_RUN: "false"
+        run: |
+          test -n "$API_BASE_URL" || (echo "Missing secret API_BASE_URL_PROD" >&2; exit 1)
+          bash scripts/naver_auto_reply_drain.sh | tee /tmp/naver_auto_reply_summary.json
+
+      - name: Append summary
+        run: |
+          echo "### Naver Auto Reply" >> "$GITHUB_STEP_SUMMARY"
+          echo "- result: \`$(cat /tmp/naver_auto_reply_summary.json)\`" >> "$GITHUB_STEP_SUMMARY"
