@@ -1,7 +1,7 @@
 {
   "name": "@dclxai/evolve-agent",
-  "version": "0.1.0",
-  "description": "Evidence-gated, self-improving autonomous agent runtime powered by GPT-5.6 Sol",
+  "version": "0.2.0",
+  "description": "Evidence-gated autonomous agent runtime with hardened Docker execution for GPT-5.6 Sol",
   "type": "module",
   "bin": {
     "evolve-agent": "./dist/cli.js"
@@ -12,8 +12,10 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
-    "SECURITY.md"
+    "SECURITY.md",
+    "docs"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

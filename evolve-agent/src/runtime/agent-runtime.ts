@@ -15,6 +15,7 @@ import type { ContextCompiler } from "../context/context-compiler.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import type { FinalVerifier } from "../verification/final-verifier.js";
 import type { CheckpointStore } from "./checkpoint-store.js";
+import type { EpisodeLease, EpisodeLeaseManager } from "./lease-manager.js";
 
 const DEFAULT_BUDGET: TaskBudget = {
   maxTurns: 12,
@@ -84,6 +85,7 @@ export interface RuntimeDependencies {
   memory: MemoryStore;
   skills: SkillStore;
   learning: LearningEngine;
+  leases: EpisodeLeaseManager;
 }
 
 export class AgentRuntime {
@@ -126,36 +128,56 @@ export class AgentRuntime {
       elapsedMs: 0,
       updatedAt: new Date().toISOString(),
     };
-    await this.dependencies.ledger.append(checkpoint.episodeId, "episode.started", {
-      task_id: task.id,
-      goal_hash: sha256Json(task.goal),
-      requested_tools: task.requestedTools,
-      budget: {
-        max_turns: task.budget.maxTurns,
-        max_tool_calls: task.budget.maxToolCalls,
-        max_input_tokens: task.budget.maxInputTokens,
-        max_output_tokens: task.budget.maxOutputTokens,
-        max_wall_time_ms: task.budget.maxWallTimeMs,
-      },
+    return this.dependencies.leases.withLease(checkpoint.episodeId, async (lease) => {
+      await this.dependencies.ledger.append(checkpoint.episodeId, "episode.started", {
+        task_id: task.id,
+        goal_hash: sha256Json(task.goal),
+        requested_tools: task.requestedTools,
+        budget: {
+          max_turns: task.budget.maxTurns,
+          max_tool_calls: task.budget.maxToolCalls,
+          max_input_tokens: task.budget.maxInputTokens,
+          max_output_tokens: task.budget.maxOutputTokens,
+          max_wall_time_ms: task.budget.maxWallTimeMs,
+        },
+      });
+      await this.recordLease(checkpoint.episodeId, lease, "run");
+      await this.dependencies.checkpoints.save(checkpoint);
+      return this.execute(checkpoint, false);
     });
-    await this.dependencies.checkpoints.save(checkpoint);
-    return this.execute(checkpoint, false);
   }
 
   public async resume(episode: string): Promise<RunResult> {
-    const checkpoint = await this.dependencies.checkpoints.load(episode);
-    if (checkpoint.status === "committed" || checkpoint.status === "budget_exhausted") {
-      throw new EvolveError("EPISODE_TERMINAL", `Cannot resume ${checkpoint.status} episode ${episode}`);
-    }
-    checkpoint.status = "running";
-    delete checkpoint.stopReason;
-    await this.dependencies.ledger.append(episode, "episode.resumed", {
-      turns: checkpoint.turns,
-      tool_calls: checkpoint.toolCalls,
-      elapsed_ms: checkpoint.elapsedMs,
+    return this.dependencies.leases.withLease(episode, async (lease) => {
+      const checkpoint = await this.dependencies.checkpoints.load(episode);
+      if (checkpoint.status === "committed" || checkpoint.status === "budget_exhausted") {
+        throw new EvolveError("EPISODE_TERMINAL", `Cannot resume ${checkpoint.status} episode ${episode}`);
+      }
+      await this.recordLease(episode, lease, "resume");
+      checkpoint.status = "running";
+      delete checkpoint.stopReason;
+      await this.dependencies.ledger.append(episode, "episode.resumed", {
+        turns: checkpoint.turns,
+        tool_calls: checkpoint.toolCalls,
+        elapsed_ms: checkpoint.elapsedMs,
+      });
+      await this.dependencies.checkpoints.save(checkpoint);
+      return this.execute(checkpoint, true);
     });
-    await this.dependencies.checkpoints.save(checkpoint);
-    return this.execute(checkpoint, true);
+  }
+
+  private async recordLease(episode: string, lease: EpisodeLease, phase: "run" | "resume"): Promise<void> {
+    await this.dependencies.ledger.append(episode, "episode.lease_acquired", {
+      phase,
+      owner_id: lease.ownerId,
+    });
+    if (lease.recovered) {
+      await this.dependencies.ledger.append(episode, "episode.stale_lock_recovered", {
+        previous_owner_id: lease.recovered.ownerId,
+        previous_pid: lease.recovered.pid,
+        previous_acquired_at: lease.recovered.acquiredAt,
+      });
+    }
   }
 
   private async stopForBudget(checkpoint: EpisodeCheckpoint, reason: string): Promise<RunResult> {

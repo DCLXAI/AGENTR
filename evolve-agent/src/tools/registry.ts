@@ -1,4 +1,7 @@
 import { EvolveError } from "../core/errors.js";
+import { ExecutorRegistry } from "../execution/executor-registry.js";
+import { LocalExecutor } from "../execution/local-executor.js";
+import { NodeProcessRunner } from "../execution/process-runner.js";
 import type { CapabilityAuthority } from "../policy/capability.js";
 import { listFilesTool } from "./list-files.js";
 import { readFileTool } from "./read-file.js";
@@ -9,14 +12,22 @@ import type { ToolDefinition, ToolDescription, ToolExecution } from "./types.js"
 import { assertObject } from "./validate.js";
 import { writeFileTool } from "./write-file.js";
 
+export interface ToolRegistryContext {
+  workspace: string;
+  allowedCommands: Set<string>;
+  executors?: ExecutorRegistry;
+}
+
 export class ToolRegistry {
   private readonly definitions = new Map<string, ToolDefinition>();
+  private readonly executors: ExecutorRegistry;
 
   public constructor(
     private readonly capabilityAuthority: CapabilityAuthority,
-    private readonly context: { workspace: string; allowedCommands: Set<string> },
+    private readonly context: ToolRegistryContext,
     tools: ToolDefinition[] = [listFilesTool, readFileTool, searchTextTool, writeFileTool, replaceTextTool, runProcessTool],
   ) {
+    this.executors = context.executors ?? new ExecutorRegistry("local", [new LocalExecutor(new NodeProcessRunner())]);
     for (const tool of tools) {
       if (this.definitions.has(tool.name)) throw new Error(`Duplicate tool name: ${tool.name}`);
       this.definitions.set(tool.name, tool);
@@ -56,7 +67,12 @@ export class ToolRegistry {
       toolName: input.toolName,
       args,
     });
-    const execution = await tool.execute(args, this.context);
+    const execution = await tool.execute(args, {
+      episodeId: input.episodeId,
+      workspace: this.context.workspace,
+      allowedCommands: this.context.allowedCommands,
+      executors: this.executors,
+    });
     return { args, execution };
   }
 }

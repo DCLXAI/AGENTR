@@ -48,24 +48,30 @@ function numeric(parsed: ParsedArgs, key: string): number | undefined {
 }
 
 function help(): void {
-  console.log(`Evolve Agent 0.1.0
+  console.log(`Evolve Agent 0.2.0 — Hardened Execution
 
 Usage:
   evolve-agent run <goal> [--workspace path] [--tool name ...] [--constraint text ...] [--success text ...]
   evolve-agent resume <episode-id> [--workspace path] [--home path]
+  evolve-agent doctor [--executor docker|local] [--allow-local-executor]
+  evolve-agent executors list
+  evolve-agent secrets sweep
   evolve-agent ledger verify [--home path]
   evolve-agent skills list [--home path]
   evolve-agent skills evaluate <skill-id> [--home path]
   evolve-agent skills canary <skill-id> --score 0.9 --note text --passed [--home path]
   evolve-agent skills promote <skill-id> [--home path]
   evolve-agent skills rollback <skill-id> --note reason [--home path]
-  evolve-agent doctor [--workspace path] [--home path]
 
-Defaults:
+Hardened defaults:
   - GPT model: gpt-5.6-sol
-  - Only read-only tools are enabled unless --tool is supplied.
-  - write_file, replace_text, and run_process require exact interactive approval.
-  - --non-interactive denies protected actions.`);
+  - Docker executor, sha256-pinned image allowlist, --pull never
+  - network=none, read-only workspace, read-only root, dropped capabilities
+  - CPU, memory, PID, tmpfs, timeout, and output limits
+  - short-lived file secrets with output redaction
+  - exact human approval for protected actions
+  - episode lease with stale-lock recovery
+  - local execution is disabled unless --allow-local-executor or EVOLVE_ALLOW_LOCAL_EXECUTOR=true is set.`);
 }
 
 async function main(): Promise<void> {
@@ -76,31 +82,78 @@ async function main(): Promise<void> {
     return;
   }
 
+  const configuredExecutor = value(parsed, "executor");
   const config = loadConfig({
     ...(value(parsed, "workspace") !== undefined ? { workspace: value(parsed, "workspace") as string } : {}),
     ...(value(parsed, "home") !== undefined ? { home: value(parsed, "home") as string } : {}),
     ...(value(parsed, "model") !== undefined ? { model: value(parsed, "model") as string } : {}),
-    nonInteractive: parsed.flags.has("non-interactive"),
+    ...(configuredExecutor !== undefined ? { defaultExecutor: configuredExecutor as "docker" | "local" } : {}),
+    ...(parsed.flags.has("allow-local-executor") ? { allowLocalExecutor: true } : {}),
+    ...(parsed.flags.has("non-interactive") ? { nonInteractive: true } : {}),
   });
   const bundle = createRuntime(config);
 
   if (command === "doctor") {
+    const expiredSecretsRemoved = await bundle.secrets.sweepExpired();
+    const probes = await bundle.executors.probeAll();
+    const defaultProbe = probes.find((probe) => probe.kind === bundle.executors.getDefaultKind());
+    const providerReady = Boolean(config.openAiApiKey);
+    const hardenedExecutionReady = config.defaultExecutor === "docker" && Boolean(defaultProbe?.ready);
+    const ok = providerReady && hardenedExecutionReady;
     console.log(
       JSON.stringify(
         {
-          ok: Boolean(config.openAiApiKey),
+          ok,
+          version: "0.2.0",
           model: config.model,
           verifier_model: config.verifierModel,
           workspace: config.workspace,
           home: config.home,
-          api_key_configured: Boolean(config.openAiApiKey),
+          api_key_configured: providerReady,
+          default_executor: bundle.executors.getDefaultKind(),
+          hardened_execution_ready: hardenedExecutionReady,
+          local_executor_enabled: bundle.executors.list().includes("local"),
+          docker: {
+            default_image: config.docker.defaultImage ?? null,
+            allowed_images: [...config.docker.allowedImages].sort(),
+            allowed_networks: [...config.docker.allowedNetworks].sort(),
+            non_root_user: config.docker.user,
+            require_rootless: config.docker.requireRootless,
+            maximums: config.docker.maximums,
+          },
+          secret_allowlist: bundle.secrets.allowedNames(),
+          expired_secret_leases_removed: expiredSecretsRemoved,
+          episode_lease: {
+            ttl_ms: config.leaseTtlMs,
+            heartbeat_ms: config.leaseHeartbeatMs,
+          },
+          executors: probes,
           tools: bundle.tools.modelDescriptions(),
         },
         null,
         2,
       ),
     );
-    process.exitCode = config.openAiApiKey ? 0 : 1;
+    process.exitCode = ok ? 0 : 1;
+    return;
+  }
+
+  if (command === "executors" && subcommand === "list") {
+    console.log(
+      JSON.stringify(
+        {
+          default: bundle.executors.getDefaultKind(),
+          probes: await bundle.executors.probeAll(),
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  if (command === "secrets" && subcommand === "sweep") {
+    console.log(JSON.stringify({ removed: await bundle.secrets.sweepExpired() }, null, 2));
     return;
   }
 

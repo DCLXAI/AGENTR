@@ -1,10 +1,13 @@
 import type { JsonObject, JsonValue } from "../core/types.js";
+import type { ExecutorRegistry } from "../execution/executor-registry.js";
 
 export type ToolRisk = "read" | "write" | "execute" | "external";
 
 export interface ToolContext {
+  episodeId: string;
   workspace: string;
   allowedCommands: Set<string>;
+  executors: ExecutorRegistry;
 }
 
 export interface ToolExecution {

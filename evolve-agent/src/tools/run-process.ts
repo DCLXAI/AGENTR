@@ -1,26 +1,29 @@
-import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { stat } from "node:fs/promises";
 import { EvolveError } from "../core/errors.js";
+import type { ExecutorKind, WorkspaceAccess } from "../execution/types.js";
 import type { ToolDefinition, ToolExecution } from "./types.js";
 import { numberArg, rejectUnknownKeys, stringArg, stringArrayArg } from "./validate.js";
 import { displayPath, resolveWorkspacePath } from "./workspace.js";
 
-function safeEnvironment(workspace: string): NodeJS.ProcessEnv {
-  const keys = ["PATH", "TMPDIR", "TEMP", "TMP", "LANG", "LC_ALL", "CI"];
-  const output: NodeJS.ProcessEnv = {};
-  for (const key of keys) {
-    const value = process.env[key];
-    if (value !== undefined) output[key] = value;
+function enumValue<T extends string>(value: string, allowed: readonly T[], label: string): T {
+  if (!allowed.includes(value as T)) throw new EvolveError("TOOL_ARGS_INVALID", `${label} must be one of ${allowed.join(", ")}`);
+  return value as T;
+}
+
+function validateSecrets(names: string[]): string[] {
+  for (const name of names) {
+    if (!/^[A-Z][A-Z0-9_]{0,63}$/.test(name)) {
+      throw new EvolveError("TOOL_ARGS_INVALID", `Invalid secret name: ${name}`);
+    }
   }
-  output.HOME = workspace;
-  output.NO_COLOR = "1";
-  return output;
+  return [...new Set(names)].sort();
 }
 
 export const runProcessTool: ToolDefinition = {
   name: "run_process",
   description:
-    "Run one allowlisted executable without a shell, in a workspace directory, with a timeout and capped output.",
+    "Run an allowlisted executable through the configured executor. Docker is deny-by-default: pinned allowlisted image, no network, read-only root, dropped capabilities, resource limits, and ephemeral file secrets.",
   risk: "execute",
   inputSchema: {
     type: "object",
@@ -30,16 +33,51 @@ export const runProcessTool: ToolDefinition = {
       cwd: { type: "string", description: "Workspace-relative working directory" },
       timeout_ms: { type: "integer", minimum: 100, maximum: 120000 },
       max_output_bytes: { type: "integer", minimum: 1024, maximum: 500000 },
+      executor: { type: "string", enum: ["default", "docker", "local"] },
+      image: { type: "string", description: "Exact allowlisted sha256-pinned Docker image" },
+      network: { type: "string", description: "none or an operator-managed allowlisted Docker network" },
+      workspace_access: { type: "string", enum: ["read-only", "read-write"] },
+      secrets: { type: "array", items: { type: "string" }, maxItems: 16 },
+      memory_mb: { type: "integer", minimum: 64, maximum: 8192 },
+      cpus: { type: "number", minimum: 0.1, maximum: 8 },
+      pids_limit: { type: "integer", minimum: 16, maximum: 1024 },
+      tmpfs_mb: { type: "integer", minimum: 16, maximum: 1024 },
     },
     required: ["command"],
     additionalProperties: false,
   },
   validate(args) {
-    rejectUnknownKeys(args, ["command", "args", "cwd", "timeout_ms", "max_output_bytes"]);
+    rejectUnknownKeys(args, [
+      "command",
+      "args",
+      "cwd",
+      "timeout_ms",
+      "max_output_bytes",
+      "executor",
+      "image",
+      "network",
+      "workspace_access",
+      "secrets",
+      "memory_mb",
+      "cpus",
+      "pids_limit",
+      "tmpfs_mb",
+    ]);
     const command = stringArg(args, "command", { required: true, min: 1, max: 128 }) as string;
     if (command.includes("/") || command.includes("\\") || command === "." || command === "..") {
       throw new EvolveError("TOOL_ARGS_INVALID", "command must be an executable name, not a path");
     }
+    const executor = enumValue(
+      stringArg(args, "executor", { fallback: "default", max: 16 }) as string,
+      ["default", "docker", "local"] as const,
+      "executor",
+    );
+    const workspaceAccess = enumValue(
+      stringArg(args, "workspace_access", { fallback: "read-only", max: 16 }) as string,
+      ["read-only", "read-write"] as const,
+      "workspace_access",
+    );
+    const image = stringArg(args, "image", { max: 512 });
     return {
       command,
       args: stringArrayArg(args, "args", { fallback: [], maxItems: 128, maxItemLength: 10_000 }) as string[],
@@ -51,6 +89,17 @@ export const runProcessTool: ToolDefinition = {
         max: 500_000,
         integer: true,
       }) as number,
+      executor,
+      ...(image !== undefined ? { image } : {}),
+      network: stringArg(args, "network", { fallback: "none", min: 1, max: 128 }) as string,
+      workspace_access: workspaceAccess,
+      secrets: validateSecrets(
+        stringArrayArg(args, "secrets", { fallback: [], maxItems: 16, maxItemLength: 64 }) as string[],
+      ),
+      memory_mb: numberArg(args, "memory_mb", { fallback: 512, min: 64, max: 8_192, integer: true }) as number,
+      cpus: numberArg(args, "cpus", { fallback: 1, min: 0.1, max: 8 }) as number,
+      pids_limit: numberArg(args, "pids_limit", { fallback: 128, min: 16, max: 1_024, integer: true }) as number,
+      tmpfs_mb: numberArg(args, "tmpfs_mb", { fallback: 64, min: 16, max: 1_024, integer: true }) as number,
     };
   },
   async execute(args, context): Promise<ToolExecution> {
@@ -58,66 +107,65 @@ export const runProcessTool: ToolDefinition = {
     if (!context.allowedCommands.has(command)) {
       throw new EvolveError("COMMAND_NOT_ALLOWED", `${command} is not in EVOLVE_ALLOWED_COMMANDS`);
     }
-    const cwd = await resolveWorkspacePath(context.workspace, args.cwd as string);
+    const workspace = await resolveWorkspacePath(context.workspace, ".");
+    const cwd = await resolveWorkspacePath(workspace, args.cwd as string);
     if (!(await stat(cwd)).isDirectory()) throw new EvolveError("PROCESS_CWD_INVALID", "cwd is not a directory");
 
-    const maxBytes = args.max_output_bytes as number;
-    let capturedBytes = 0;
-    let truncated = false;
-    const stdoutChunks: Buffer[] = [];
-    const stderrChunks: Buffer[] = [];
-
-    const append = (chunks: Buffer[], chunk: Buffer): void => {
-      const remaining = maxBytes - capturedBytes;
-      if (remaining <= 0) {
-        truncated = true;
-        return;
-      }
-      const accepted = chunk.subarray(0, remaining);
-      chunks.push(accepted);
-      capturedBytes += accepted.length;
-      if (accepted.length < chunk.length) truncated = true;
-    };
-
-    const child = spawn(command, args.args as string[], {
+    const requestedExecutor = args.executor as "default" | ExecutorKind;
+    const result = await context.executors.execute(requestedExecutor, {
+      runId: `${context.episodeId}-${randomUUID()}`,
+      command,
+      args: args.args as string[],
+      workspace,
       cwd,
-      shell: false,
-      windowsHide: true,
-      env: safeEnvironment(context.workspace),
-      stdio: ["ignore", "pipe", "pipe"],
+      timeoutMs: args.timeout_ms as number,
+      maxOutputBytes: args.max_output_bytes as number,
+      workspaceAccess: args.workspace_access as WorkspaceAccess,
+      network: args.network as string,
+      secretNames: args.secrets as string[],
+      limits: {
+        memoryMb: args.memory_mb as number,
+        cpus: args.cpus as number,
+        pids: args.pids_limit as number,
+        tmpfsMb: args.tmpfs_mb as number,
+      },
+      ...(args.image !== undefined ? { image: args.image as string } : {}),
     });
-    child.stdout.on("data", (chunk: Buffer) => append(stdoutChunks, chunk));
-    child.stderr.on("data", (chunk: Buffer) => append(stderrChunks, chunk));
 
-    let timedOut = false;
-    const timeout = setTimeout(() => {
-      timedOut = true;
-      child.kill("SIGTERM");
-      setTimeout(() => child.kill("SIGKILL"), 1_000).unref();
-    }, args.timeout_ms as number);
-    timeout.unref();
-
-    const result = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve, reject) => {
-      child.once("error", reject);
-      child.once("close", (code, signal) => resolve({ code, signal }));
-    }).finally(() => clearTimeout(timeout));
-
-    const stdout = Buffer.concat(stdoutChunks).toString("utf8");
-    const stderr = Buffer.concat(stderrChunks).toString("utf8");
-    const success = !timedOut && result.code === 0;
     return {
-      success,
-      summary: `${command} exited ${timedOut ? "after timeout" : `with code ${String(result.code)}`} in ${displayPath(context.workspace, cwd)}`,
+      success: result.success,
+      summary: `${command} exited ${result.timedOut ? "after timeout" : `with code ${String(result.exitCode)}`} via ${result.executor} in ${displayPath(workspace, cwd)}`,
       data: {
         command,
         args: args.args as string[],
-        cwd: displayPath(context.workspace, cwd),
-        exit_code: result.code,
+        cwd: displayPath(workspace, cwd),
+        executor: result.executor,
+        exit_code: result.exitCode,
         signal: result.signal,
-        timed_out: timedOut,
-        truncated,
-        stdout,
-        stderr,
+        timed_out: result.timedOut,
+        truncated: result.truncated,
+        duration_ms: result.durationMs,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        ...(result.image !== undefined ? { image: result.image } : {}),
+        network: result.network,
+        workspace_access: result.workspaceAccess,
+        secret_names: result.secretNames,
+        execution_receipt: {
+          run_id: result.receipt.runId,
+          sandbox_id: result.receipt.sandboxId,
+          command_hash: result.receipt.commandHash,
+          policy_hash: result.receipt.policyHash,
+        },
+        isolation: {
+          boundary: result.isolation.boundary,
+          read_only_root: result.isolation.readOnlyRoot,
+          capabilities_dropped: result.isolation.capabilitiesDropped,
+          no_new_privileges: result.isolation.noNewPrivileges,
+          resource_limits: result.isolation.resourceLimits,
+          network_policy: result.isolation.networkPolicy,
+          secret_delivery: result.isolation.secretDelivery,
+        },
       },
     };
   },

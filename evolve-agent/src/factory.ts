@@ -2,6 +2,13 @@ import path from "node:path";
 import type { EvolveConfig } from "./config.js";
 import { EvolveError } from "./core/errors.js";
 import { ContextCompiler } from "./context/context-compiler.js";
+import { DockerExecutor } from "./execution/docker-executor.js";
+import { ExecutorRegistry } from "./execution/executor-registry.js";
+import { ImagePolicy } from "./execution/image-policy.js";
+import { LocalExecutor } from "./execution/local-executor.js";
+import { DockerNetworkPolicy } from "./execution/network-policy.js";
+import { NodeProcessRunner, type ProcessRunner } from "./execution/process-runner.js";
+import type { Executor } from "./execution/types.js";
 import { ArtifactStore } from "./ledger/artifact-store.js";
 import { JsonlLedger } from "./ledger/jsonl-ledger.js";
 import { LearningEngine } from "./learning/learning-engine.js";
@@ -19,6 +26,8 @@ import type {
 } from "./providers/provider.js";
 import { AgentRuntime } from "./runtime/agent-runtime.js";
 import { CheckpointStore } from "./runtime/checkpoint-store.js";
+import { EpisodeLeaseManager } from "./runtime/lease-manager.js";
+import { FileSecretBroker, type SecretBroker, type SecretSource } from "./secrets/secret-broker.js";
 import { SkillStore } from "./skills/skill-store.js";
 import { ToolRegistry } from "./tools/registry.js";
 import { FinalVerifier } from "./verification/final-verifier.js";
@@ -41,16 +50,63 @@ export interface RuntimeBundle {
   skills: SkillStore;
   tools: ToolRegistry;
   provider: AgentProvider;
+  executors: ExecutorRegistry;
+  secrets: SecretBroker;
+  leases: EpisodeLeaseManager;
 }
 
-export function createRuntime(
+export interface RuntimeOverrides {
+  provider?: AgentProvider;
+  approver?: Approver;
+  processRunner?: ProcessRunner;
+  secretSource?: SecretSource;
+  secretBroker?: SecretBroker;
+  executors?: ExecutorRegistry;
+  leases?: EpisodeLeaseManager;
+}
+
+function createExecutors(
   config: EvolveConfig,
-  overrides: { provider?: AgentProvider; approver?: Approver } = {},
-): RuntimeBundle {
+  runner: ProcessRunner,
+  secrets: SecretBroker,
+): ExecutorRegistry {
+  const executors: Executor[] = [
+    new DockerExecutor(runner, secrets, {
+      binary: config.docker.binary,
+      user: config.docker.user,
+      imagePolicy: new ImagePolicy(config.docker.allowedImages, config.docker.defaultImage),
+      networkPolicy: new DockerNetworkPolicy(config.docker.allowedNetworks),
+      maximums: config.docker.maximums,
+      requireRootless: config.docker.requireRootless,
+    }),
+  ];
+  if (config.allowLocalExecutor) executors.push(new LocalExecutor(runner));
+  return new ExecutorRegistry(config.defaultExecutor, executors);
+}
+
+export function createRuntime(config: EvolveConfig, overrides: RuntimeOverrides = {}): RuntimeBundle {
+  const runner = overrides.processRunner ?? new NodeProcessRunner();
+  const secrets =
+    overrides.secretBroker ??
+    new FileSecretBroker(
+      path.join(config.home, "runtime", "secrets"),
+      config.secretAllowlist,
+      config.secretTtlMs,
+      overrides.secretSource,
+    );
+  const executors = overrides.executors ?? createExecutors(config, runner, secrets);
+  const leases =
+    overrides.leases ??
+    new EpisodeLeaseManager(config.home, {
+      ttlMs: config.leaseTtlMs,
+      heartbeatMs: config.leaseHeartbeatMs,
+    });
+
   const capabilities = new CapabilityAuthority(path.join(config.home, "capability.key"));
   const tools = new ToolRegistry(capabilities, {
     workspace: config.workspace,
     allowedCommands: config.allowedCommands,
+    executors,
   });
   const ledger = new JsonlLedger(path.join(config.home, "episodes.jsonl"));
   const artifacts = new ArtifactStore(config.home);
@@ -86,6 +142,7 @@ export function createRuntime(
     memory,
     skills,
     learning,
+    leases,
   });
-  return { runtime, ledger, artifacts, checkpoints, memory, skills, tools, provider };
+  return { runtime, ledger, artifacts, checkpoints, memory, skills, tools, provider, executors, secrets, leases };
 }

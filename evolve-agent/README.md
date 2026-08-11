@@ -1,79 +1,88 @@
 # Evolve Agent
 
-> An evidence-gated autonomous agent kernel for **GPT-5.6 Sol**.
+> An evidence-gated autonomous agent kernel for **GPT-5.6 Sol**, now with a hardened execution plane.
 
 Evolve Agent is built around one rule:
 
-> An agent should gain capability only when its work is observable, evidence-backed, evaluated, canaried, and reversible.
+> An agent should gain authority only when its work is observable, evidence-backed, bounded, isolated, evaluated, and reversible.
 
-OpenClaw is excellent at gateway reach. Hermes Agent is strong at persistent learning loops. Evolve Agent targets the missing control layer between them: **verifiable adaptation**.
+OpenClaw is excellent at gateway reach. Hermes Agent is strong at persistent learning loops. Evolve Agent targets the missing control layer between them: **verifiable adaptation with an explicit authority boundary**.
 
-This repository contains a serious v0.1 kernel. It does **not** claim to already exceed the production maturity, channel integrations, community, or battle testing of OpenClaw and Hermes. It is designed to go beyond them on a narrower architectural axis: evidence, authority, and governed self-improvement.
+**v0.2 Hardened Execution** moves process tools out of the agent host and into a deny-by-default Docker executor. It does not claim to match the ecosystem or production maturity of OpenClaw or Hermes. It does implement a narrower set of strong invariants around execution, evidence, secrets, and recovery.
 
-## What is implemented
+## What v0.2 adds
 
-- OpenAI Responses API adapter with `gpt-5.6-sol` as the default model
-- bounded autonomous task loop with turn, tool, token, and wall-time budgets
-- separate final-answer verifier pass; verifier model is independently configurable
-- append-only, SHA-256 hash-chained episode ledger
-- content-addressed tool artifacts and current-episode evidence IDs
-- deterministic rejection of invented or cross-episode evidence
-- workspace path and symlink escape protection for file tools
-- exact, expiring HMAC capability tokens bound to normalized tool arguments
-- explicit approval for file mutation and process execution
-- shell-free, allowlisted process execution with timeout and output caps
-- durable checkpoints and resume after provider/network interruption
-- evidence-aware durable memory
-- repeated-success pattern detection
-- learned Skill candidates that can never self-promote
-- evaluation → canary record → explicit promotion → rollback lifecycle
-- 12 invariant and end-to-end tests
+- Docker-first executor abstraction; host execution is disabled by default
+- exact `sha256` image pinning and image allowlist
+- `--pull never` so a task cannot fetch an unreviewed image implicitly
+- `network=none` by default; unsafe built-in networks are rejected
+- read-only container root and read-only workspace by default
+- non-root numeric container user
+- all Linux capabilities dropped and `no-new-privileges` enabled
+- default Docker seccomp policy retained; the runtime never requests `seccomp=unconfined`
+- memory, swap, CPU, PID, tmpfs, file-descriptor, timeout, and output limits
+- process-group termination plus best-effort orphan-container cleanup
+- short-lived `0600` secret files, name allowlist, TTL sweep, and exact-value output redaction
+- execution receipts containing command and policy hashes
+- per-Episode lease, heartbeat, duplicate-resume rejection, and stale-lock recovery
+- agent authority state is required to live outside the mounted workspace
+- 26 invariant and end-to-end tests
 
-## Core loop
+The v0.1 evidence and learning controls remain:
+
+- GPT-5.6 Sol through the OpenAI Responses API
+- bounded autonomous loop and durable checkpoints
+- separate final-answer verification pass
+- content-addressed artifacts and current-Episode evidence IDs
+- append-only SHA-256 hash-chained episode ledger
+- exact expiring HMAC capabilities bound to normalized tool arguments
+- explicit approval for protected actions
+- evidence-aware memory
+- candidate → evaluation → canary → explicit promotion → rollback Skill lifecycle
+- no automatic Skill promotion
+
+## Hardened process path
 
 ```text
-TaskSpec
-  -> Tool boundary + budgets
-  -> Context compiler
-       promoted Skills only
-       evidence-aware memory
-       recent observations
-  -> GPT-5.6 Sol decision
-       tool proposal OR final proposal
-  -> Policy
-  -> Human approval for protected actions
-  -> Exact capability token
-  -> Tool execution
-  -> Content-addressed artifact
-  -> Hash-chained ledger + checkpoint
-  -> Final deterministic checks
-  -> Separate verifier pass
-  -> Commit / retry / budget stop
-  -> Repeated-pattern learner
-  -> Candidate Skill
-  -> Evaluation -> Canary -> Explicit promotion or rollback
+GPT-5.6 Sol proposes run_process
+        |
+        v
+schema validation + task tool boundary
+        |
+        v
+human approval of exact normalized arguments
+        |
+        v
+HMAC capability bound to episode + tool + arguments + expiry
+        |
+        v
+ExecutorRegistry
+        |
+        +--> DockerExecutor (default)
+        |      exact pinned image allowlist
+        |      network deny-all by default
+        |      read-only root/workspace
+        |      non-root + cap-drop ALL + no-new-privileges
+        |      cgroup/resource limits + output limit
+        |      ephemeral file secrets + redaction
+        |
+        +--> LocalExecutor (disabled unsafe escape hatch)
+        |
+        v
+execution receipt + stdout/stderr artifact
+        |
+        v
+hash-chained ledger + checkpoint + independent verifier
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
-
-## Why this is beyond a normal “learning agent”
-
-| Question | Typical runtime learning | Evolve Agent v0.1 |
-|---|---|---|
-| Can the model invent proof that a tool ran? | Often possible in text | No; evidence must exist in the current episode artifact store |
-| Can approved arguments change before execution? | Frequently unspecified | No; HMAC capability binds the exact normalized arguments |
-| Can memory become trusted without provenance? | Often yes | High-confidence memory requires valid evidence |
-| Can a learned Skill activate itself? | Sometimes | No; candidates are inactive until explicit gates pass |
-| Can the execution history be edited silently? | Plain logs | Hash-chain verification detects mutation |
-| Can a protected tool run unattended by default? | Framework-dependent | No; non-interactive mode fails closed |
-| Can an interrupted episode resume? | Framework-dependent | Yes; observations, usage, evidence, and budgets are checkpointed |
+See [docs/HARDENED_EXECUTION.md](docs/HARDENED_EXECUTION.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 ## Requirements
 
 - Node.js 22.6 or newer
+- Docker Engine or Docker Desktop for the default executor
 - an OpenAI API key with access to the configured model
-
-The default model ID is `gpt-5.6-sol`. Override it with `OPENAI_MODEL`. The runtime sends `store: false` for Responses API calls.
+- at least one reviewed Docker image available locally under an exact digest
 
 ## Install
 
@@ -81,65 +90,197 @@ The default model ID is `gpt-5.6-sol`. Override it with `OPENAI_MODEL`. The runt
 cd evolve-agent
 npm install
 cp .env.example .env
+npm run check
 ```
 
-Export the API key in the shell rather than committing it:
+Export the API key in the shell or a protected environment manager:
 
 ```bash
 export OPENAI_API_KEY="..."
 ```
 
-Validate the package:
+## Configure a pinned image
+
+Pull an image deliberately, inspect its immutable repository digest, then allowlist that exact value:
 
 ```bash
-npm run check
+docker pull node:22-bookworm-slim
+IMAGE="$(docker image inspect node:22-bookworm-slim --format '{{index .RepoDigests 0}}')"
+
+export EVOLVE_DOCKER_DEFAULT_IMAGE="$IMAGE"
+export EVOLVE_DOCKER_ALLOWED_IMAGES="$IMAGE"
+```
+
+The runtime itself uses `--pull never`. A missing local image therefore fails rather than silently changing the execution environment.
+
+For stricter host configuration:
+
+```bash
+export EVOLVE_DOCKER_REQUIRE_ROOTLESS=true
+```
+
+Run the readiness check:
+
+```bash
 npm run dev -- doctor
 ```
 
+`doctor` reports API readiness, the default executor, image presence, rootless status, resource ceilings, network allowlist, secret names, stale-secret cleanup, and lease settings. It never prints secret values.
+
 ## Run a read-only task
 
-Only read tools are enabled by default.
+Only read tools are enabled when no `--tool` boundary is supplied:
 
 ```bash
 npm run dev -- run \
   "Read package.json and explain the scripts" \
   --workspace . \
   --tool read_file \
-  --success "Every package-specific claim cites current-episode evidence"
+  --success "Every package-specific claim cites current-Episode evidence"
 ```
 
 Evidence-backed final answers use this syntax:
 
 ```text
-The test script compiles the test tree and runs Node's test runner. [evidence:ev_...]
+The test script compiles the test tree and invokes Node's test runner. [evidence:ev_...]
 ```
 
-An evidence ID is accepted only when it was generated by a tool in that exact episode.
+The evidence ID is accepted only if that exact Episode produced it.
 
-## Enable protected tools explicitly
+## Run code in the hardened executor
 
 ```bash
 npm run dev -- run \
-  "Update the README only after inspecting it, then run the test suite" \
+  "Inspect the package and run its typecheck without network access" \
   --workspace . \
-  --tool read_file search_text replace_text run_process \
-  --success "The requested edit is present" \
-  --success "The test command exits successfully"
+  --tool list_files read_file search_text run_process \
+  --constraint "Use the Docker executor, network none, and a read-only workspace" \
+  --success "The typecheck result is backed by run_process evidence"
 ```
 
-`replace_text` and `run_process` pause for approval. The approval is bound to the exact arguments displayed. A model cannot obtain approval for one command and execute another.
+The model's `run_process` proposal can contain:
 
-In `--non-interactive` mode, protected actions are denied rather than auto-approved.
+```json
+{
+  "command": "npm",
+  "args": ["run", "typecheck"],
+  "executor": "docker",
+  "network": "none",
+  "workspace_access": "read-only",
+  "memory_mb": 1024,
+  "cpus": 1,
+  "pids_limit": 128,
+  "tmpfs_mb": 64
+}
+```
 
-## Resume an interrupted episode
+The exact normalized object is shown for approval and bound into the capability token. Altering an argument after approval invalidates the token.
 
-Provider and network interruptions are checkpointed:
+### Writable workspace
+
+A writable bind mount is available only when the proposal explicitly requests:
+
+```json
+{ "workspace_access": "read-write" }
+```
+
+This changes the approved authority and is visible in the execution receipt. Prefer read-only inspection followed by narrow `write_file` or `replace_text` operations when possible.
+
+## Secret delivery
+
+Allowlist secret **names**, not values:
+
+```bash
+export EVOLVE_SECRET_ALLOWLIST="NPM_TOKEN"
+export NPM_TOKEN="..."
+```
+
+A process request may then include:
+
+```json
+{ "secrets": ["NPM_TOKEN"] }
+```
+
+The executor writes a short-lived `0600` host file, mounts it read-only at `/run/secrets/NPM_TOKEN`, and sets only:
+
+```text
+NPM_TOKEN_FILE=/run/secrets/NPM_TOKEN
+```
+
+The value is never placed in Docker CLI arguments or the child environment. Exact occurrences in stdout and stderr are replaced with `[REDACTED_SECRET:NPM_TOKEN]` before evidence is stored. Applications must deliberately read the `_FILE` path.
+
+Redaction is a last line of defense, not a data-loss-prevention system. Encoded, transformed, fragmented, or encrypted derivatives of a secret cannot be reliably recognized.
+
+## Network policy
+
+The default is:
+
+```json
+{ "network": "none" }
+```
+
+`host`, `bridge`, `default`, and container-sharing modes are rejected. Additional names must be configured by the operator:
+
+```bash
+export EVOLVE_DOCKER_ALLOWED_NETWORKS="evolve-egress"
+```
+
+An allowlisted named network is only a delegation to an **operator-managed network boundary**. Evolve Agent does not claim that a Docker network name by itself provides domain-level egress control. Configure firewall, proxy, DNS, or service-mesh policy outside the process container.
+
+## State isolation
+
+Agent state contains the capability authority, checkpoints, memory, Skills, evidence metadata, and leases. It must not be exposed to sandboxed code.
+
+For that reason, v0.2 rejects configurations where `EVOLVE_HOME` is inside `EVOLVE_WORKSPACE`. When `EVOLVE_HOME` is omitted, a per-workspace state directory is derived under:
+
+```text
+$XDG_STATE_HOME/evolve-agent/<workspace-hash>
+```
+
+or, when `XDG_STATE_HOME` is absent:
+
+```text
+~/.local/state/evolve-agent/<workspace-hash>
+```
+
+## Crash recovery and Episode leases
+
+Every run or resume acquires an atomic Episode lease and refreshes its heartbeat. A second process cannot resume the same Episode concurrently.
+
+If the heartbeat is older than the configured TTL, the runtime checks whether the recorded process is still alive on the same host. It recovers only a dead or remote stale owner and writes `episode.stale_lock_recovered` to the ledger.
 
 ```bash
 npm run dev -- resume <episode-id> --workspace .
 ```
 
-Committed and budget-exhausted episodes are terminal and cannot be resumed in place.
+Committed and budget-exhausted Episodes remain terminal.
+
+## Unsafe local escape hatch
+
+The local executor is intentionally unavailable by default. Enabling it requires an explicit operator decision:
+
+```bash
+npm run dev -- doctor --executor local --allow-local-executor
+```
+
+A local process request must acknowledge both unenforceable properties:
+
+```json
+{
+  "executor": "local",
+  "network": "host",
+  "workspace_access": "read-write"
+}
+```
+
+It cannot receive brokered secrets. Evidence marks its isolation boundary as `none`. Do not use it for untrusted code.
+
+## Inspect executors and clean stale secret leases
+
+```bash
+npm run dev -- executors list
+npm run dev -- secrets sweep
+```
 
 ## Verify the ledger
 
@@ -147,11 +288,7 @@ Committed and budget-exhausted episodes are terminal and cannot be resumed in pl
 npm run dev -- ledger verify
 ```
 
-The verifier recomputes every event hash and predecessor link. This detects modification, deletion in the middle of the chain, reordering, and insertion without recomputing the remaining chain. The local HMAC key and ledger must still be protected by normal host security.
-
 ## Govern learned Skills
-
-A repeated successful tool sequence creates only an inactive candidate.
 
 ```bash
 npm run dev -- skills list
@@ -161,25 +298,7 @@ npm run dev -- skills promote <skill-id>
 npm run dev -- skills rollback <skill-id> --note "regression detected"
 ```
 
-Important: v0.1 records the result of a canary run; it does not yet provision and execute an isolated canary environment automatically. Automated replay, shadow traffic, and rollback are v0.3 roadmap items.
-
-## State layout
-
-By default state is written under `.evolve/`:
-
-```text
-.evolve/
-  capability.key       local HMAC authority, mode 0600
-  episodes.jsonl       append-only hash-chained ledger
-  checkpoints/         resumable episode state
-  artifacts/           content-addressed tool outputs
-  evidence/            evidence metadata
-  memory.json          durable evidence-aware memory
-  patterns.json        repeated flow observations
-  skills.json          candidate/evaluated/canary/promoted records
-```
-
-Change the location with `EVOLVE_HOME`.
+A repeated successful flow creates only an inactive candidate. A model cannot promote its own Skill.
 
 ## Built-in tools
 
@@ -188,67 +307,69 @@ Change the location with `EVOLVE_HOME`.
 | `list_files` | read | workspace boundary, recursion and entry caps |
 | `read_file` | read | regular-file check, byte cap, SHA-256 output |
 | `search_text` | read | literal search, file/result/size caps |
-| `write_file` | write | approval, exact capability, create-only and SHA compare-and-swap |
-| `replace_text` | write | approval, exact occurrence count and optional SHA compare-and-swap |
-| `run_process` | execute | approval, executable allowlist, no shell, minimal environment, timeout and output cap |
+| `write_file` | write | exact approval, create-only option, SHA compare-and-swap |
+| `replace_text` | write | exact approval, occurrence count, SHA compare-and-swap |
+| `run_process` | execute | exact approval, executor policy, image/network/resource/secret controls |
 
-## Security boundary
-
-The local process tool is **not a sandbox**. Approval and allowlisting reduce accidental execution, but an approved executable runs with the operating-system permissions of the current user and may access host resources outside the workspace. Use a container, microVM, or restricted remote executor for untrusted code.
-
-Do not expose `.evolve/capability.key`, API keys, or state directories to untrusted users. See [SECURITY.md](SECURITY.md).
-
-## Test coverage
-
-The test suite currently covers:
-
-- capability argument binding and expiry
-- registry revalidation after approval
-- ledger tamper detection
-- traversal and symlink rejection
-- evidence requirement for high-confidence memory
-- Skill evaluation, canary, promotion, and rollback gates
-- Responses API request contract
-- evidence-backed end-to-end commit
-- fabricated evidence rejection before verifier invocation
-- fail-closed approval denial
-- durable budget exhaustion
-- repeated episodes producing an inactive candidate only
-
-Run everything:
+## Validation
 
 ```bash
 npm run check
 ```
 
+The v0.2 suite covers:
+
+- capability argument binding and expiry
+- registry revalidation after approval
+- ledger mutation detection
+- workspace traversal and symlink rejection
+- agent-state separation from the workspace
+- Docker image digest and allowlist enforcement
+- unsafe Docker network rejection
+- non-root container user enforcement
+- hardening flag construction
+- secret non-leakage into Docker arguments and environment
+- secret file permissions, cleanup, TTL sweep, and stdout/stderr redaction
+- resource receipt generation
+- output-flood termination
+- local executor explicit-risk acknowledgement
+- active Episode duplicate rejection
+- dead stale-lock recovery and live-process protection
+- evidence-backed final commit and independent verification
+- fabricated evidence rejection
+- durable budget exhaustion
+- governed Skill promotion and rollback
+
+## Honest limits
+
+v0.2 substantially narrows execution authority, but it is not a formal sandbox proof.
+
+- The Docker daemon and approved image remain trusted computing base.
+- A Docker named network needs external egress enforcement.
+- Exact-value redaction cannot catch transformed secrets.
+- Read-write workspace approval permits the container to alter the mounted project.
+- Docker Desktop uses a VM boundary, while native Docker security depends on host configuration.
+- Firecracker, per-request microVM images, signed execution attestations, and remote secret brokers remain future work.
+- No live GPT-5.6 Sol request is performed by the test suite; provider integration uses a deterministic local HTTP test server.
+
+Read [SECURITY.md](SECURITY.md) before using the executor on hostile workloads.
+
 ## Repository layout
 
 ```text
-src/runtime       bounded loop and checkpoints
-src/ledger        event hash chain and evidence artifacts
+src/execution     executor interface, Docker/local backends, policies, runner
+src/secrets       short-lived file secret broker and redaction
+src/runtime       bounded loop, checkpoints, Episode leases
+src/ledger        event hash chain and content-addressed evidence
 src/policy        risk decisions, approval, exact capabilities
-src/tools         workspace and process tools
+src/tools         workspace tools and executor-backed run_process
 src/providers     GPT-5.6 Sol Responses API and mock provider
 src/verification  deterministic and model-based final verification
 src/memory        evidence-aware durable memory
-src/learning      repeated-episode pattern detection
+src/learning      repeated-Episode pattern detection
 src/skills        candidate/evaluation/canary/promotion lifecycle
-src/context       controlled context assembly
-tests             invariant and end-to-end tests
+tests             security invariants and end-to-end tests
 ```
-
-## Roadmap
-
-The next defensible milestones are not more chat channels. They are stronger execution and evaluation:
-
-1. Docker and Firecracker executor adapters with network egress policy
-2. replay fixtures and counterfactual Skill evaluation
-3. shadow traffic, automated canaries, and regression rollback
-4. signed Skill provenance and private registry
-5. lease-based multi-agent work graph
-6. ACP/EDL episode binding and quorum evidence receipts
-
-See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 

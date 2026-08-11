@@ -73,6 +73,8 @@ test("runtime commits only after tool evidence and independent verification", as
     assert.match(result.answer ?? "", /\[evidence:ev_[a-f0-9]{24}\]/);
     assert.equal(environment.provider.verifications.length, 1);
     assert.deepEqual(await environment.bundle.ledger.verify(), { valid: true, events: (await environment.bundle.ledger.readAll()).length });
+    const episodeEvents = await environment.bundle.ledger.forEpisode(result.episodeId);
+    assert.ok(episodeEvents.some((event) => event.type === "episode.lease_acquired"));
     assert.equal((await environment.bundle.memory.list()).length, 1);
   } finally {
     await rm(environment.root, { recursive: true, force: true });
