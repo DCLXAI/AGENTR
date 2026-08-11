@@ -86,6 +86,7 @@ export interface RuntimeDependencies {
   skills: SkillStore;
   learning: LearningEngine;
   leases: EpisodeLeaseManager;
+  evolution?: { observeTerminal(checkpoint: EpisodeCheckpoint): Promise<void> };
 }
 
 export class AgentRuntime {
@@ -122,6 +123,7 @@ export class AgentRuntime {
       observations: [],
       evidenceIds: [],
       toolSequence: [],
+      activeSkillIds: [],
       usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
       turns: 0,
       toolCalls: 0,
@@ -195,7 +197,19 @@ export class AgentRuntime {
       elapsed_ms: checkpoint.elapsedMs,
     });
     await this.dependencies.checkpoints.save(checkpoint);
+    await this.observeEvolution(checkpoint);
     return resultOf(checkpoint);
+  }
+
+  private async observeEvolution(checkpoint: EpisodeCheckpoint): Promise<void> {
+    if (!this.dependencies.evolution) return;
+    try {
+      await this.dependencies.evolution.observeTerminal(checkpoint);
+    } catch (error: unknown) {
+      await this.dependencies.ledger.append(checkpoint.episodeId, "evaluation.observer_failed", {
+        reason: errorMessage(error),
+      });
+    }
   }
 
   private async execute(checkpoint: EpisodeCheckpoint, resumed: boolean): Promise<RunResult> {
@@ -219,6 +233,7 @@ export class AgentRuntime {
           toolCalls: checkpoint.toolCalls,
           elapsedMs: checkpoint.elapsedMs,
         });
+        checkpoint.activeSkillIds = [...new Set([...(checkpoint.activeSkillIds ?? []), ...prompt.skills.map((skill) => skill.id)])];
         const decisionResult = await this.dependencies.provider.decide(prompt);
         checkpoint.turns += 1;
         checkpoint.usage = addUsage(checkpoint.usage, decisionResult.usage);
@@ -393,6 +408,7 @@ export class AgentRuntime {
         }
 
         checkpoint.answer = decision.answer;
+        checkpoint.finalScore = verification.verdict.score;
         checkpoint.status = "committed";
         const validEvidence = new Set(verification.validEvidenceIds);
         for (const proposal of decision.memoryProposals) {
@@ -432,6 +448,7 @@ export class AgentRuntime {
           resumed,
         });
         await this.dependencies.checkpoints.save(checkpoint);
+        await this.observeEvolution(checkpoint);
         await this.dependencies.learning.observeCommitted(checkpoint);
         return resultOf(checkpoint);
       }
@@ -448,6 +465,7 @@ export class AgentRuntime {
         tool_calls: checkpoint.toolCalls,
       });
       await this.dependencies.checkpoints.save(checkpoint);
+      await this.observeEvolution(checkpoint);
       return resultOf(checkpoint);
     }
   }

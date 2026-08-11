@@ -2,23 +2,49 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { atomicWriteJson, readJsonFile } from "../core/fs.js";
 import { EvolveError } from "../core/errors.js";
-import type { SkillEvaluation, SkillRecord, SkillStep } from "../core/types.js";
+import type { SkillRecord, SkillStep } from "../core/types.js";
+import type { PromotionAuthorization } from "../evaluation/types.js";
+
+export interface SkillPromotionVerifier {
+  verifyPromotion(skill: SkillRecord, authorization: PromotionAuthorization): Promise<void>;
+}
+
+interface SkillFileV1 {
+  version: 1;
+  records: Array<SkillRecord & Partial<Pick<SkillRecord, "evaluationReportIds" | "canaryReportIds">>>;
+}
 
 interface SkillFile {
-  version: 1;
+  version: 2;
   records: SkillRecord[];
+}
+
+function migrate(file: SkillFile | SkillFileV1): SkillFile {
+  if (file.version === 2) return file;
+  return {
+    version: 2,
+    records: file.records.map((record) => ({
+      ...record,
+      evaluationReportIds: [...(record.evaluationReportIds ?? [])],
+      canaryReportIds: [...(record.canaryReportIds ?? [])],
+    })),
+  };
 }
 
 export class SkillStore {
   private readonly filePath: string;
 
-  public constructor(home: string) {
+  public constructor(home: string, private readonly promotionVerifier?: SkillPromotionVerifier) {
     this.filePath = path.join(home, "skills.json");
   }
 
   private async load(): Promise<SkillFile> {
-    const file = await readJsonFile<SkillFile>(this.filePath, { version: 1, records: [] });
-    if (file.version !== 1 || !Array.isArray(file.records)) throw new EvolveError("SKILLS_CORRUPT", "Unsupported skills file");
+    const raw = await readJsonFile<SkillFile | SkillFileV1>(this.filePath, { version: 2, records: [] });
+    if ((raw.version !== 1 && raw.version !== 2) || !Array.isArray(raw.records)) {
+      throw new EvolveError("SKILLS_CORRUPT", "Unsupported skills file");
+    }
+    const file = migrate(raw);
+    if (raw.version === 1) await this.save(file);
     return file;
   }
 
@@ -54,8 +80,11 @@ export class SkillStore {
     const now = new Date().toISOString();
     let skill = file.records.find((record) => record.fingerprint === input.fingerprint && record.status !== "rolled_back");
     if (skill) {
-      skill.supportingEpisodes = [...new Set([...skill.supportingEpisodes, ...input.supportingEpisodes])];
-      skill.provenanceEvidenceIds = [...new Set([...skill.provenanceEvidenceIds, ...input.provenanceEvidenceIds])];
+      // Once evaluation starts, freeze the training provenance. New Episodes become independent holdout material.
+      if (skill.status === "candidate") {
+        skill.supportingEpisodes = [...new Set([...skill.supportingEpisodes, ...input.supportingEpisodes])];
+        skill.provenanceEvidenceIds = [...new Set([...skill.provenanceEvidenceIds, ...input.provenanceEvidenceIds])];
+      }
       skill.triggers = [...new Set([...skill.triggers, ...input.triggers])].slice(0, 20);
       skill.updatedAt = now;
     } else {
@@ -74,6 +103,8 @@ export class SkillStore {
         updatedAt: now,
         evaluations: [],
         canaries: [],
+        evaluationReportIds: [],
+        canaryReportIds: [],
       };
       file.records.push(skill);
     }
@@ -81,80 +112,91 @@ export class SkillStore {
     return skill;
   }
 
-  public async evaluate(id: string, knownTools: Set<string>): Promise<SkillRecord> {
+  public async attachEvaluationReport(id: string, reportId: string, passed: boolean): Promise<SkillRecord> {
     const file = await this.load();
     const skill = file.records.find((record) => record.id === id);
     if (!skill) throw new EvolveError("SKILL_NOT_FOUND", `Unknown skill: ${id}`);
     if (skill.status === "promoted" || skill.status === "rolled_back") {
-      throw new EvolveError("SKILL_STATE", `Cannot evaluate a ${skill.status} skill`);
+      throw new EvolveError("SKILL_STATE", `Cannot attach an offline evaluation to a ${skill.status} Skill`);
     }
-
-    const notes: string[] = [];
-    const allToolsKnown = skill.allowedTools.every((tool) => knownTools.has(tool)) && skill.steps.every((step) => knownTools.has(step.toolName));
-    if (!allToolsKnown) notes.push("Skill references unknown tools");
-    if (skill.steps.length === 0) notes.push("Skill has no executable steps");
-    if (skill.supportingEpisodes.length < 2) notes.push("At least two independent supporting episodes are required");
-    if (skill.provenanceEvidenceIds.length === 0) notes.push("Skill has no provenance evidence");
-
-    const policyPassed = allToolsKnown && skill.steps.length > 0;
-    const replayPassed = skill.supportingEpisodes.length >= 2 && skill.provenanceEvidenceIds.length > 0;
-    const score = [policyPassed, replayPassed, skill.supportingEpisodes.length >= 3, skill.provenanceEvidenceIds.length >= 2].filter(Boolean).length / 4;
-    const evaluation: SkillEvaluation = {
-      at: new Date().toISOString(),
-      policyPassed,
-      replayPassed,
-      score,
-      notes: notes.length > 0 ? notes : ["Static policy and repeated-episode replay support passed"],
-    };
-    skill.evaluations.push(evaluation);
-    skill.status = "evaluated";
-    skill.updatedAt = evaluation.at;
+    skill.evaluationReportIds = [...new Set([...skill.evaluationReportIds, reportId])];
+    skill.status = passed ? "evaluated" : "quarantined";
+    skill.updatedAt = new Date().toISOString();
     await this.save(file);
     return skill;
   }
 
-  public async recordCanary(id: string, passed: boolean, score: number, note: string): Promise<SkillRecord> {
-    if (!Number.isFinite(score) || score < 0 || score > 1) throw new EvolveError("SKILL_CANARY", "Canary score must be between 0 and 1");
+  public async attachCanaryReport(id: string, reportId: string, passed: boolean): Promise<SkillRecord> {
     const file = await this.load();
     const skill = file.records.find((record) => record.id === id);
     if (!skill) throw new EvolveError("SKILL_NOT_FOUND", `Unknown skill: ${id}`);
-    const latest = skill.evaluations.at(-1);
-    if (!latest?.policyPassed || !latest.replayPassed || latest.score < 0.5) {
-      throw new EvolveError("SKILL_GATE", "Skill must pass evaluation before canary");
+    if (skill.status === "promoted" || skill.status === "rolled_back") {
+      throw new EvolveError("SKILL_STATE", `Cannot attach a canary evaluation to a ${skill.status} Skill`);
     }
+    if (skill.evaluationReportIds.length === 0) {
+      throw new EvolveError("SKILL_GATE", "Canary requires a signed offline evaluation report");
+    }
+    skill.canaryReportIds = [...new Set([...skill.canaryReportIds, reportId])];
+    skill.status = passed ? "canary" : "quarantined";
+    skill.updatedAt = new Date().toISOString();
+    await this.save(file);
+    return skill;
+  }
+
+  public async promote(id: string, authorization: PromotionAuthorization): Promise<SkillRecord> {
+    const file = await this.load();
+    const skill = file.records.find((record) => record.id === id);
+    if (!skill) throw new EvolveError("SKILL_NOT_FOUND", `Unknown skill: ${id}`);
+    if (skill.status !== "canary") throw new EvolveError("SKILL_GATE", "Promotion requires a passing canary state");
+    if (!skill.evaluationReportIds.includes(authorization.offlineReportId)) {
+      throw new EvolveError("SKILL_GATE", "Offline report is not attached to this Skill");
+    }
+    if (!skill.canaryReportIds.includes(authorization.canaryReportId)) {
+      throw new EvolveError("SKILL_GATE", "Canary report is not attached to this Skill");
+    }
+    if (!this.promotionVerifier) {
+      throw new EvolveError("SKILL_AUTHORITY", "A signed-report promotion verifier is required");
+    }
+    await this.promotionVerifier.verifyPromotion(skill, authorization);
     const at = new Date().toISOString();
-    skill.canaries.push({ at, passed, score, note: note.slice(0, 2_000) });
-    skill.status = "canary";
+    skill.status = "promoted";
+    skill.promotion = { at, ...authorization };
+    delete skill.rollback;
     skill.updatedAt = at;
     await this.save(file);
     return skill;
   }
 
-  public async promote(id: string): Promise<SkillRecord> {
+  public async quarantine(id: string, reason: string): Promise<SkillRecord> {
     const file = await this.load();
     const skill = file.records.find((record) => record.id === id);
     if (!skill) throw new EvolveError("SKILL_NOT_FOUND", `Unknown skill: ${id}`);
-    const evaluation = skill.evaluations.at(-1);
-    const canary = skill.canaries.at(-1);
-    if (!evaluation?.policyPassed || !evaluation.replayPassed || evaluation.score < 0.8) {
-      throw new EvolveError("SKILL_GATE", "Promotion requires a policy/replay evaluation score of at least 0.8");
-    }
-    if (!canary?.passed || canary.score < 0.8) {
-      throw new EvolveError("SKILL_GATE", "Promotion requires a passing canary score of at least 0.8");
-    }
-    skill.status = "promoted";
+    if (skill.status === "promoted") throw new EvolveError("SKILL_STATE", "Use rollback for a promoted Skill");
+    skill.status = "quarantined";
     skill.updatedAt = new Date().toISOString();
+    skill.canaries.push({ at: skill.updatedAt, passed: false, score: 0, note: `Quarantine: ${reason.slice(0, 1_000)}` });
     await this.save(file);
     return skill;
   }
 
-  public async rollback(id: string, reason: string): Promise<SkillRecord> {
+  public async rollback(
+    id: string,
+    reason: string,
+    options: { automatic?: boolean; reportId?: string } = {},
+  ): Promise<SkillRecord> {
     const file = await this.load();
     const skill = file.records.find((record) => record.id === id);
     if (!skill) throw new EvolveError("SKILL_NOT_FOUND", `Unknown skill: ${id}`);
+    const at = new Date().toISOString();
     skill.status = "rolled_back";
-    skill.updatedAt = new Date().toISOString();
-    skill.canaries.push({ at: skill.updatedAt, passed: false, score: 0, note: `Rollback: ${reason.slice(0, 1_000)}` });
+    skill.updatedAt = at;
+    skill.rollback = {
+      at,
+      reason: reason.slice(0, 2_000),
+      automatic: options.automatic ?? false,
+      ...(options.reportId ? { reportId: options.reportId } : {}),
+    };
+    skill.canaries.push({ at, passed: false, score: 0, note: `Rollback: ${reason.slice(0, 1_000)}` });
     await this.save(file);
     return skill;
   }

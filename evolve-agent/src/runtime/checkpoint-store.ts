@@ -26,6 +26,7 @@ export class CheckpointStore {
     if (checkpoint.version !== 1 || checkpoint.episodeId !== episodeId) {
       throw new EvolveError("CHECKPOINT_CORRUPT", `Invalid checkpoint for ${episodeId}`);
     }
+    checkpoint.activeSkillIds ??= [];
     return checkpoint;
   }
 }

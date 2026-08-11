@@ -5,33 +5,89 @@ import path from "node:path";
 import test from "node:test";
 import { SkillStore } from "../src/skills/skill-store.js";
 
-test("skill promotion requires evaluation and a passing canary", async () => {
+async function candidate(store: SkillStore) {
+  return store.upsertCandidate({
+    fingerprint: "a".repeat(64),
+    name: "Inspect package metadata",
+    description: "Read a package manifest and report its scripts.",
+    triggers: ["package", "scripts"],
+    steps: [{ toolName: "read_file", purpose: "Read the manifest" }],
+    allowedTools: ["read_file"],
+    supportingEpisodes: [
+      "ep_aaaaaaaaaaaaaaaaaaaaaaaa",
+      "ep_bbbbbbbbbbbbbbbbbbbbbbbb",
+    ],
+    provenanceEvidenceIds: ["ev_aaaaaaaaaaaaaaaaaaaaaaaa", "ev_bbbbbbbbbbbbbbbbbbbbbbbb"],
+  });
+}
+
+test("skill promotion requires attached offline and canary reports", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "evolve-skills-"));
   try {
-    const store = new SkillStore(root);
-    const skill = await store.upsertCandidate({
-      fingerprint: "a".repeat(64),
-      name: "Inspect package metadata",
-      description: "Read a package manifest and report its scripts.",
-      triggers: ["package", "scripts"],
-      steps: [{ toolName: "read_file", purpose: "Read the manifest" }],
-      allowedTools: ["read_file"],
-      supportingEpisodes: [
-        "ep_aaaaaaaaaaaaaaaaaaaaaaaa",
-        "ep_bbbbbbbbbbbbbbbbbbbbbbbb",
-        "ep_cccccccccccccccccccccccc",
-      ],
-      provenanceEvidenceIds: ["ev_aaaaaaaaaaaaaaaaaaaaaaaa", "ev_bbbbbbbbbbbbbbbbbbbbbbbb"],
+    const unauthorizedStore = new SkillStore(path.join(root, "unauthorized"));
+    const unauthorized = await candidate(unauthorizedStore);
+    await unauthorizedStore.attachEvaluationReport(unauthorized.id, "report_aaaaaaaaaaaaaaaaaaaaaaaa", true);
+    await unauthorizedStore.attachCanaryReport(unauthorized.id, "report_bbbbbbbbbbbbbbbbbbbbbbbb", true);
+    await assert.rejects(
+      unauthorizedStore.promote(unauthorized.id, {
+        offlineReportId: "report_aaaaaaaaaaaaaaaaaaaaaaaa",
+        canaryReportId: "report_bbbbbbbbbbbbbbbbbbbbbbbb",
+        policyHash: "c".repeat(64),
+        keyFingerprint: "d".repeat(32),
+      }),
+      /signed-report promotion verifier/i,
+    );
+
+    const store = new SkillStore(root, { async verifyPromotion() {} });
+    const skill = await candidate(store);
+    await assert.rejects(
+      store.promote(skill.id, {
+        offlineReportId: "report_aaaaaaaaaaaaaaaaaaaaaaaa",
+        canaryReportId: "report_bbbbbbbbbbbbbbbbbbbbbbbb",
+        policyHash: "c".repeat(64),
+        keyFingerprint: "d".repeat(32),
+      }),
+      /canary state/i,
+    );
+    await store.attachEvaluationReport(skill.id, "report_aaaaaaaaaaaaaaaaaaaaaaaa", true);
+    await store.attachCanaryReport(skill.id, "report_bbbbbbbbbbbbbbbbbbbbbbbb", true);
+    const promoted = await store.promote(skill.id, {
+      offlineReportId: "report_aaaaaaaaaaaaaaaaaaaaaaaa",
+      canaryReportId: "report_bbbbbbbbbbbbbbbbbbbbbbbb",
+      policyHash: "c".repeat(64),
+      keyFingerprint: "d".repeat(32),
     });
-    await assert.rejects(store.promote(skill.id), /evaluation/i);
-    const evaluated = await store.evaluate(skill.id, new Set(["read_file"]));
-    assert.equal(evaluated.evaluations.at(-1)?.score, 1);
-    await assert.rejects(store.promote(skill.id), /canary/i);
-    await store.recordCanary(skill.id, true, 0.91, "Isolated replay passed");
-    const promoted = await store.promote(skill.id);
     assert.equal(promoted.status, "promoted");
-    const rolledBack = await store.rollback(skill.id, "Regression observed");
+    assert.equal(promoted.promotion?.offlineReportId, "report_aaaaaaaaaaaaaaaaaaaaaaaa");
+    const rolledBack = await store.rollback(skill.id, "Regression observed", {
+      automatic: true,
+      reportId: "report_cccccccccccccccccccccccc",
+    });
     assert.equal(rolledBack.status, "rolled_back");
+    assert.equal(rolledBack.rollback?.automatic, true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("evaluation freezes supporting Episodes so later runs remain holdout material", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "evolve-skills-freeze-"));
+  try {
+    const store = new SkillStore(root);
+    const skill = await candidate(store);
+    await store.attachEvaluationReport(skill.id, "report_aaaaaaaaaaaaaaaaaaaaaaaa", true);
+    const updated = await store.upsertCandidate({
+      fingerprint: skill.fingerprint,
+      name: skill.name,
+      description: skill.description,
+      triggers: ["metadata"],
+      steps: skill.steps,
+      allowedTools: skill.allowedTools,
+      supportingEpisodes: ["ep_cccccccccccccccccccccccc"],
+      provenanceEvidenceIds: ["ev_cccccccccccccccccccccccc"],
+    });
+    assert.deepEqual(updated.supportingEpisodes, skill.supportingEpisodes);
+    assert.ok(updated.triggers.includes("metadata"));
   } finally {
     await rm(root, { recursive: true, force: true });
   }

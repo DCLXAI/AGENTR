@@ -2,54 +2,57 @@
 
 ## Protected assets
 
-- workspace integrity
-- OpenAI and external-service credentials
-- capability-signing authority
-- Episode and evidence integrity
-- memory and Skill integrity
+- workspace files and side effects
+- host credentials and brokered secrets
+- tool and executor authority
+- Episode integrity and evidence provenance
+- memory integrity
+- Skill training provenance and activation state
+- replay fixture integrity
+- evaluation signing key
+- offline, canary, and monitor reports
 - human approval intent
-- host availability
 
-## Adversaries
+## Principal threats and controls
 
-- malicious or compromised model output
-- prompt injection embedded in repository content or tool output
-- hostile code proposed for execution
-- poisoned Docker image or dependency
-- concurrent worker racing the same Episode
-- crash leaving files, containers, or locks behind
-- local user able to edit unprotected state
-
-## Threats and controls
-
-| Threat | Primary controls | Residual risk |
+| Threat | Primary control | Residual risk |
 |---|---|---|
-| Prompt injection requests a dangerous tool | requested-tool boundary, external policy, explicit approval | user may still approve a harmful exact action |
-| Arguments change after approval | HMAC capability over normalized arguments | compromised host authority can sign anything |
-| Arbitrary image substitution | digest syntax, exact allowlist, `--pull never` | allowlisted image itself may be malicious |
-| Host filesystem escape | only workspace bind mount; state required outside workspace | approved read-write workspace can be damaged |
-| Container privilege escalation | non-root UID:GID, read-only root, cap-drop ALL, no-new-privileges, default seccomp | kernel or Docker vulnerabilities remain |
-| Unrestricted internet | `network=none`; unsafe built-ins rejected | custom network enforcement is external |
-| Secret appears in CLI or env | read-only file mount and `_FILE` pointer | task can read the file by design |
-| Secret appears in evidence output | exact-value redaction before artifact storage | transformed or fragmented values can evade detection |
-| Process fork bomb | PID limit, CPU/memory limits, timeout | daemon/host-level resource pressure remains possible |
-| Infinite output | byte cap, process-group termination, unsuccessful truncated result | disk writes inside approved writable workspace remain |
-| Docker client killed but container survives | deterministic name and `docker rm -f` cleanup | daemon outage can delay cleanup |
-| Fabricated evidence | current-Episode evidence set and content-addressed artifacts | malicious host can rewrite authority and state together |
-| Ledger editing | predecessor hash and event hash verification | no external signature or quorum yet |
-| Duplicate Episode execution | exclusive lease and heartbeat | distributed filesystems may have weaker atomicity semantics |
-| Unsafe stale-lock steal | TTL plus same-host live-PID check and owner-safe release | PID reuse may delay recovery |
-| Poisoned memory | evidence requirement and provenance | evidence can still support an incorrect inference |
-| Self-promoted unsafe Skill | candidate-only synthesis and explicit gated promotion | human evaluator can approve a bad Skill |
-| Host execution masquerades as sandbox | local executor disabled; explicit host/read-write acknowledgement; receipt boundary `none` | operator can intentionally opt out |
+| Prompt injection requests a dangerous tool | model has no direct authority; policy, approval, capability, executor | operator may approve malicious intent |
+| Arguments change after approval | HMAC binds exact normalized arguments | compromised host can replace authority code |
+| Workspace path escape | canonical containment and symlink rejection | approved process may damage read-write workspace |
+| Arbitrary image or implicit update | exact digest allowlist and `--pull never` | allowlisted image may itself be malicious |
+| Broad network access | `network=none`; unsafe built-ins rejected | operator-managed custom network may be permissive |
+| Container privilege escalation | non-root, read-only root, cap-drop ALL, no-new-privileges, seccomp | kernel or Docker vulnerability remains |
+| Secret in command line or environment | short-lived read-only files and `_FILE` pointers | approved process can read the secret by design |
+| Secret in evidence output | exact-value redaction before artifact storage | transformed or fragmented secret may evade detection |
+| Fork bomb or output flood | cgroup/PID limits, timeout, output cap, process-group kill | host daemon pressure remains possible |
+| Fabricated evidence | current-Episode evidence set and content-addressed artifacts | compromised host can rewrite state and authority together |
+| Ledger editing | predecessor and event hashes | no remote witness or quorum yet |
+| Duplicate Episode execution | exclusive lease and heartbeat | distributed filesystem semantics may differ |
+| Unsafe stale-lock steal | TTL plus same-host live-PID check | PID reuse can delay recovery |
+| Poisoned memory | evidence requirement and provenance | valid evidence can support a wrong inference |
+| Training/evaluation leakage | supporting Episode exclusion and provenance freeze | semantically duplicated tasks may still leak |
+| Fixture tampering | content hash, deterministic ID, structural and evidence validation | malicious but internally consistent fixture remains possible |
+| Candidate changes replay side effects | recorded observations; no tool re-execution | replay does not test live integration behavior |
+| Candidate wins by changing trace | exact proposal tool/argument hash matching | semantically equivalent alternative trace is scored as mismatch |
+| Candidate invents evidence | evidence availability and citation contract | verifier can still misjudge answer quality |
+| Weak average hides new failure | paired new-failure gate | small fixture set may miss rare failures |
+| Report modified after evaluation | Ed25519 signature and payload hash | local signing key compromise defeats integrity |
+| Fake report IDs passed directly to SkillStore | store-level signed-report verifier | malicious code with signing-key access can forge authority |
+| Candidate output affects users during canary | shadow output discarded | counterfactual replay consumes model cost and may leak to provider logs according to provider policy |
+| Promoted Skill regresses | rolling monitor and automatic rollback | correlation does not prove causation; detection waits for minimum samples |
+| Evaluator drift | same verifier within paired report | drift across report generations remains |
+| Automatic unsafe promotion | no automatic promotion path | operator can explicitly promote a poor but passing Skill |
 
-## Out of scope for v0.2
+## Out of scope for v0.3
 
-- formal verification of the Docker or kernel boundary
-- zero-trust protection from the host administrator or Docker daemon operator
-- Firecracker microVM isolation
-- domain-aware egress enforcement built into the runtime
-- remote secret minting and revocation
-- signed or hardware-attested execution receipts
-- distributed consensus for leases or the Episode ledger
-- semantic detection of all secret-derived output
+- protection from a hostile host administrator or Docker daemon operator
+- formal verification of model, verifier, Docker, or kernel behavior
+- hardware-backed signing or remote attestation
+- remote consensus for evaluation reports or ledger heads
+- domain-aware egress filtering implemented inside the runtime
+- proof that fixture distribution matches future production traffic
+- causal attribution of outcome changes to one Skill
+- complete statistical treatment of repeated, adaptive, or multiple experiments
+- automatic Skill promotion
+- distributed multi-agent lease consensus

@@ -3,6 +3,8 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { sha256Bytes } from "./core/hash.js";
 import type { ExecutorKind, ResourceLimits } from "./execution/types.js";
+import { defaultEvaluationPolicy } from "./evaluation/metrics.js";
+import type { EvaluationPolicy } from "./evaluation/types.js";
 
 export type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -39,6 +41,19 @@ export interface DockerConfig {
   requireRootless: boolean;
 }
 
+export interface EvaluationConfig {
+  captureCommitted: boolean;
+  shadowPercent: number;
+  monitorPromoted: boolean;
+  canaryMinSamples: number;
+  monitorMinSamples: number;
+  monitorWindow: number;
+  monitorMaxSuccessDrop: number;
+  monitorMaxScoreDrop: number;
+  monitorMaxTokenRatio: number;
+  policy: EvaluationPolicy;
+}
+
 export interface EvolveConfig {
   home: string;
   workspace: string;
@@ -55,6 +70,7 @@ export interface EvolveConfig {
   secretTtlMs: number;
   leaseTtlMs: number;
   leaseHeartbeatMs: number;
+  evaluation: EvaluationConfig;
 }
 
 function booleanValue(value: boolean | undefined, environment: string | undefined, fallback: boolean): boolean {
@@ -63,6 +79,27 @@ function booleanValue(value: boolean | undefined, environment: string | undefine
   if (environment === "true") return true;
   if (environment === "false") return false;
   throw new Error(`Expected true or false, received ${environment}`);
+}
+
+function nonnegativeValue(value: number | undefined, environment: string | undefined, fallback: number, label: string): number {
+  const resolved = value ?? (environment === undefined ? fallback : Number(environment));
+  if (!Number.isFinite(resolved) || resolved < 0) throw new Error(`${label} must be a non-negative number`);
+  return resolved;
+}
+
+function boundedValue(
+  value: number | undefined,
+  environment: string | undefined,
+  fallback: number,
+  label: string,
+  minimum: number,
+  maximum: number,
+): number {
+  const resolved = value ?? (environment === undefined ? fallback : Number(environment));
+  if (!Number.isFinite(resolved) || resolved < minimum || resolved > maximum) {
+    throw new Error(`${label} must be between ${minimum} and ${maximum}`);
+  }
+  return resolved;
 }
 
 function numberValue(value: number | undefined, environment: string | undefined, fallback: number, label: string): number {
@@ -77,10 +114,11 @@ function values(source: Iterable<string> | undefined, environment: string | unde
 }
 
 export type ConfigOverrides = Partial<
-  Omit<EvolveConfig, "allowedCommands" | "secretAllowlist" | "docker">
+  Omit<EvolveConfig, "allowedCommands" | "secretAllowlist" | "docker" | "evaluation">
 > & {
   allowedCommands?: Iterable<string>;
   secretAllowlist?: Iterable<string>;
+  evaluation?: Partial<Omit<EvaluationConfig, "policy">> & { policy?: Partial<EvaluationPolicy> };
   docker?: Partial<Omit<DockerConfig, "allowedImages" | "allowedNetworks" | "maximums">> & {
     allowedImages?: Iterable<string>;
     allowedNetworks?: Iterable<string>;
@@ -165,6 +203,168 @@ export function loadConfig(overrides: ConfigOverrides = {}): EvolveConfig {
     throw new Error("EVOLVE_HOME must be outside EVOLVE_WORKSPACE so sandboxed code cannot read agent authority or secret state");
   }
 
+  const evaluationOverride = overrides.evaluation ?? {};
+  const evaluationPolicy = defaultEvaluationPolicy({
+    ...evaluationOverride.policy,
+    minFixtures: Math.floor(
+      numberValue(
+        evaluationOverride.policy?.minFixtures,
+        process.env.EVOLVE_EVAL_MIN_FIXTURES,
+        3,
+        "EVOLVE_EVAL_MIN_FIXTURES",
+      ),
+    ),
+    repeats: Math.floor(
+      numberValue(evaluationOverride.policy?.repeats, process.env.EVOLVE_EVAL_REPEATS, 1, "EVOLVE_EVAL_REPEATS"),
+    ),
+    maxNewFailures: Math.floor(
+      nonnegativeValue(
+        evaluationOverride.policy?.maxNewFailures,
+        process.env.EVOLVE_EVAL_MAX_NEW_FAILURES,
+        0,
+        "EVOLVE_EVAL_MAX_NEW_FAILURES",
+      ),
+    ),
+    maxSuccessRegression: boundedValue(
+      evaluationOverride.policy?.maxSuccessRegression,
+      process.env.EVOLVE_EVAL_MAX_SUCCESS_REGRESSION,
+      0,
+      "EVOLVE_EVAL_MAX_SUCCESS_REGRESSION",
+      0,
+      1,
+    ),
+    maxScoreRegression: boundedValue(
+      evaluationOverride.policy?.maxScoreRegression,
+      process.env.EVOLVE_EVAL_MAX_SCORE_REGRESSION,
+      0.02,
+      "EVOLVE_EVAL_MAX_SCORE_REGRESSION",
+      0,
+      1,
+    ),
+    minSuccessImprovement: boundedValue(
+      evaluationOverride.policy?.minSuccessImprovement,
+      process.env.EVOLVE_EVAL_MIN_SUCCESS_IMPROVEMENT,
+      0.05,
+      "EVOLVE_EVAL_MIN_SUCCESS_IMPROVEMENT",
+      0,
+      1,
+    ),
+    minScoreImprovement: boundedValue(
+      evaluationOverride.policy?.minScoreImprovement,
+      process.env.EVOLVE_EVAL_MIN_SCORE_IMPROVEMENT,
+      0.02,
+      "EVOLVE_EVAL_MIN_SCORE_IMPROVEMENT",
+      0,
+      1,
+    ),
+    maxTokenRegressionRatio: numberValue(
+      evaluationOverride.policy?.maxTokenRegressionRatio,
+      process.env.EVOLVE_EVAL_MAX_TOKEN_RATIO,
+      1.2,
+      "EVOLVE_EVAL_MAX_TOKEN_RATIO",
+    ),
+    maxToolCallRegressionRatio: numberValue(
+      evaluationOverride.policy?.maxToolCallRegressionRatio,
+      process.env.EVOLVE_EVAL_MAX_TOOL_RATIO,
+      1.2,
+      "EVOLVE_EVAL_MAX_TOOL_RATIO",
+    ),
+    efficiencyImprovementRatio: boundedValue(
+      evaluationOverride.policy?.efficiencyImprovementRatio,
+      process.env.EVOLVE_EVAL_EFFICIENCY_RATIO,
+      0.9,
+      "EVOLVE_EVAL_EFFICIENCY_RATIO",
+      0.01,
+      1,
+    ),
+    confidenceLevel: boundedValue(
+      evaluationOverride.policy?.confidenceLevel,
+      process.env.EVOLVE_EVAL_CONFIDENCE,
+      0.9,
+      "EVOLVE_EVAL_CONFIDENCE",
+      0.5,
+      0.999,
+    ),
+    bootstrapSamples: Math.floor(
+      numberValue(
+        evaluationOverride.policy?.bootstrapSamples,
+        process.env.EVOLVE_EVAL_BOOTSTRAP_SAMPLES,
+        1_000,
+        "EVOLVE_EVAL_BOOTSTRAP_SAMPLES",
+      ),
+    ),
+  });
+  const evaluation: EvaluationConfig = {
+    captureCommitted: booleanValue(
+      evaluationOverride.captureCommitted,
+      process.env.EVOLVE_EVAL_CAPTURE_COMMITTED,
+      false,
+    ),
+    shadowPercent: boundedValue(
+      evaluationOverride.shadowPercent,
+      process.env.EVOLVE_EVAL_SHADOW_PERCENT,
+      0,
+      "EVOLVE_EVAL_SHADOW_PERCENT",
+      0,
+      100,
+    ),
+    monitorPromoted: booleanValue(
+      evaluationOverride.monitorPromoted,
+      process.env.EVOLVE_EVAL_MONITOR_PROMOTED,
+      true,
+    ),
+    canaryMinSamples: Math.floor(
+      numberValue(
+        evaluationOverride.canaryMinSamples,
+        process.env.EVOLVE_EVAL_CANARY_MIN_SAMPLES,
+        5,
+        "EVOLVE_EVAL_CANARY_MIN_SAMPLES",
+      ),
+    ),
+    monitorMinSamples: Math.floor(
+      numberValue(
+        evaluationOverride.monitorMinSamples,
+        process.env.EVOLVE_EVAL_MONITOR_MIN_SAMPLES,
+        10,
+        "EVOLVE_EVAL_MONITOR_MIN_SAMPLES",
+      ),
+    ),
+    monitorWindow: Math.floor(
+      numberValue(
+        evaluationOverride.monitorWindow,
+        process.env.EVOLVE_EVAL_MONITOR_WINDOW,
+        50,
+        "EVOLVE_EVAL_MONITOR_WINDOW",
+      ),
+    ),
+    monitorMaxSuccessDrop: boundedValue(
+      evaluationOverride.monitorMaxSuccessDrop,
+      process.env.EVOLVE_EVAL_MONITOR_MAX_SUCCESS_DROP,
+      0.1,
+      "EVOLVE_EVAL_MONITOR_MAX_SUCCESS_DROP",
+      0,
+      1,
+    ),
+    monitorMaxScoreDrop: boundedValue(
+      evaluationOverride.monitorMaxScoreDrop,
+      process.env.EVOLVE_EVAL_MONITOR_MAX_SCORE_DROP,
+      0.1,
+      "EVOLVE_EVAL_MONITOR_MAX_SCORE_DROP",
+      0,
+      1,
+    ),
+    monitorMaxTokenRatio: numberValue(
+      evaluationOverride.monitorMaxTokenRatio,
+      process.env.EVOLVE_EVAL_MONITOR_MAX_TOKEN_RATIO,
+      1.5,
+      "EVOLVE_EVAL_MONITOR_MAX_TOKEN_RATIO",
+    ),
+    policy: evaluationPolicy,
+  };
+  if (evaluation.monitorWindow < evaluation.monitorMinSamples || evaluation.monitorWindow < evaluation.canaryMinSamples) {
+    throw new Error("EVOLVE_EVAL_MONITOR_WINDOW must be at least both EVOLVE_EVAL_MONITOR_MIN_SAMPLES and EVOLVE_EVAL_CANARY_MIN_SAMPLES");
+  }
+
   const apiKey = overrides.openAiApiKey ?? process.env.OPENAI_API_KEY;
   const docker: DockerConfig = {
     binary: dockerOverride.binary ?? process.env.EVOLVE_DOCKER_BINARY ?? "docker",
@@ -196,5 +396,6 @@ export function loadConfig(overrides: ConfigOverrides = {}): EvolveConfig {
     secretTtlMs: numberValue(overrides.secretTtlMs, process.env.EVOLVE_SECRET_TTL_MS, 300_000, "EVOLVE_SECRET_TTL_MS"),
     leaseTtlMs,
     leaseHeartbeatMs,
+    evaluation,
   };
 }

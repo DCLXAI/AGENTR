@@ -1,61 +1,72 @@
 # Roadmap
 
-## v0.1 — Evidence-gated kernel — complete
+## v0.1 — Evidence-Gated Kernel — complete
 
-- bounded task loop
+- bounded autonomous loop
+- exact approval capabilities
+- content-addressed evidence
 - hash-chained Episode ledger
-- content-addressed artifacts
-- exact capability tokens
-- policy and human approval boundary
-- independent final verification
-- checkpoints and budgets
-- governed Skill lifecycle
+- independent final verifier
+- evidence-aware memory
+- inactive learned Skill candidates
 
-## v0.2 — Hardened Execution — complete in this branch
+## v0.2 — Hardened Execution — complete
 
-- executor interface and registry
-- Docker-first fail-closed backend
-- exact digest image allowlist and `--pull never`
-- deny-all default network and custom-network delegation
-- non-root, read-only root, dropped capabilities, no-new-privileges
-- memory/CPU/PID/tmpfs/timeout/output limits
-- short-lived file secret broker and exact-value output redaction
-- execution command/policy receipts
-- state/workspace separation
-- Episode lease, heartbeat, duplicate rejection, stale recovery
-- explicit non-isolated local escape hatch
+- Docker-first executor abstraction
+- pinned image and deny-by-default network policy
+- non-root, read-only, capability-dropped containers
+- resource, timeout, and output limits
+- short-lived file secret broker
+- execution receipts
+- Episode leases and stale-lock recovery
 
-## v0.2.1 — Stronger sandbox adapters
+## v0.3 — Evaluation-Driven Evolution — complete in this branch
 
-- Firecracker executor with prebuilt measured rootfs
-- remote sandbox executor interface
-- per-run ephemeral writable overlay
-- seccomp/AppArmor profile attestation
-- daemon orphan reaper and startup reconciliation
-- platform-specific Docker Desktop and native-Linux policy checks
+- immutable replay fixtures
+- train/evaluation leakage guard
+- paired baseline-versus-candidate replay
+- quality, safety, cost, and confidence gates
+- signed offline and canary reports
+- shadow canaries with no production intervention
+- explicit report-backed promotion
+- rolling production monitor
+- automatic rollback
 
-## v0.3 — Evaluation-driven evolution
+## v0.3.1 — Real Evaluation Qualification
 
-- replayable Episode fixtures
-- counterfactual Skill evaluation
-- shadow execution and automatic canaries
-- regression-triggered rollback
-- signed Skill provenance and private registry
-- benchmark comparison against OpenClaw and Hermes on long-running tasks
+- live GPT-5.6 Sol repeated-run variance matrix
+- rootless Docker integration tests on Linux
+- Docker Desktop integration tests on macOS
+- real image digest, network-none, timeout, and orphan-cleanup tests
+- adversarial fixture corpus
+- mutation-generated trace and evidence attacks
+- evaluator consistency and calibration dashboard
 
-## v0.4 — Distributed control plane
+## v0.3.2 — Statistical Hardening
+
+- sequential testing
+- multiple-comparison control
+- minimum detectable effect planning
+- stratified task-family reports
+- evaluator drift alarms
+- holdout rotation and fixture expiration
+- provenance for dataset review and approvals
+
+## v0.4 — Distributed Evidence Control Plane
+
+- signed executor-policy and image-provenance receipts
+- remote or hardware-backed report authority
+- append-only remote witness for ledger heads
+- lease-based multi-agent work graph
+- quorum evidence receipts
+- ACP/EDL off-chain Episode binding
+- signed private Skill registry
+
+## v0.5 — Production Agent Platform
 
 - channel adapters separated from the kernel
-- multi-agent work graph with lease-based ownership
-- durable queue and idempotent tool commits
-- quorum evidence receipts
-- ACP/EDL off-chain Episode binder
-- distributed observability and cost attribution
-
-## v0.5 — Attested autonomous operations
-
-- external secret broker with per-run credentials
-- signed execution and evaluation receipts
-- policy-as-code bundles
-- multi-party approval for high-impact actions
-- tamper-evident remote ledger anchoring
+- multi-tenant authority isolation
+- remote microVM executors
+- policy-as-code distribution
+- cost attribution and fleet observability
+- staged Skill rollout across worker cohorts

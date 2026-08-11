@@ -1,118 +1,129 @@
 # Architecture
 
-Evolve Agent separates five loops that agent frameworks often blur together.
+Evolve Agent separates five loops that are often collapsed into one opaque agent process.
+
+## 1. Task loop
 
 ```text
-1. Decision loop
-   TaskSpec -> Context Compiler -> GPT-5.6 Sol -> tool/final proposal
-
-2. Authority loop
-   schema -> task boundary -> policy -> human approval -> exact capability
-
-3. Execution loop
-   ExecutorRegistry -> Docker policy -> isolated process -> execution receipt
-
-4. Evidence loop
-   artifact -> hash-chained ledger -> deterministic checks -> independent verifier
-
-5. Learning loop
-   committed Episodes -> repeated pattern -> candidate Skill -> evaluation -> canary -> promotion/rollback
+TaskSpec
+  -> Context Compiler
+  -> GPT-5.6 Sol decision
+  -> tool proposal or final proposal
+  -> evidence-aware verification
+  -> commit, retry, interruption, or budget stop
 ```
 
-## End-to-end flow
+The loop is bounded by turns, tool calls, input tokens, output tokens, and wall time. Checkpoints preserve all consumed budget across resume.
+
+## 2. Authority and execution loop
 
 ```text
-Ingress / TaskSpec
-        |
-        v
-Episode lease -----------------------> duplicate or live-stale reject
-        |
-        v
-Context Compiler <---- promoted Skills + evidence-backed memory
-        |
-        v
-GPT-5.6 Sol decision
-        |
-        +---- final answer ---> evidence checks ---> independent verifier
-        |                                             |
-        |                                             +--> commit / retry
-        v
-tool proposal
-        |
-        v
-schema + requested-tool boundary + risk policy
-        |
-        v
-human approval of exact arguments
-        |
-        v
-expiring HMAC capability
-        |
-        v
-ToolRegistry revalidates schema + capability
-        |
-        v
-ExecutorRegistry
-        |
-        +---- DockerExecutor
-        |       image policy
-        |       network policy
-        |       resource policy
-        |       secret broker
-        |       process runner
-        |
-        +---- LocalExecutor (disabled by default, no isolation claim)
-        |
-        v
-execution receipt + content-addressed artifact
-        |
-        v
-hash-chained ledger + checkpoint
-        |
-        v
-next turn / budget stop / final verification
-        |
-        v
-committed Episode -> governed learning loop
+model proposal
+  -> schema validation
+  -> task tool boundary
+  -> risk policy
+  -> human approval for protected actions
+  -> exact HMAC capability
+  -> Executor Registry
+  -> Docker sandbox by default
+  -> execution receipt
+  -> content-addressed evidence
+  -> hash-chained ledger
 ```
 
-## State separation
+The model never receives direct execution authority. The local executor is disabled unless the operator explicitly enables an unsafe escape hatch.
 
-The mounted workspace is treated as potentially adversarial. Agent authority state therefore lives outside it:
+## 3. Learning loop
 
 ```text
-state home
-  capability.key
-  episodes.jsonl
-  checkpoints/
-  artifacts/
-  evidence/
-  memory.json
-  patterns.json
-  skills.json
-  leases/
-  runtime/secrets/   short-lived only
+committed Episodes
+  -> repeated successful tool trace
+  -> candidate Skill
+  -> frozen supporting Episode/evidence provenance
 ```
 
-A configuration placing the state home inside the workspace is rejected.
+A candidate remains inactive. Once its first offline report is attached, its training provenance no longer expands. Later matching Episodes can therefore become evaluation or canary data rather than silently contaminating the training set.
 
-## Core invariants
+## 4. Evaluation loop
 
-1. No protected tool executes without an unexpired capability bound to exact normalized arguments.
-2. No task can invoke a tool outside its initial requested-tool boundary.
-3. No factual claim can cite evidence absent from the current Episode.
-4. Every execution result becomes a content-addressed artifact before the next model turn.
-5. Every ledger event commits to the predecessor hash.
-6. Docker images are immutable digest references from an exact allowlist.
-7. Docker execution is network-denied and read-only unless the approved request explicitly changes those fields.
-8. Secret values do not enter the Docker command line or evidence payload.
-9. One Episode has at most one active lease under the host lease model.
-10. High-confidence memory requires evidence.
-11. A Skill cannot become promoted without policy, replay support, canary, score, and explicit promotion.
-12. Every model loop is bounded by turns, tools, tokens, wall time, process time, and process output.
+```text
+clean committed Episode
+  -> content-addressed replay fixture
 
-## Trust boundaries
+candidate Skill + independent fixtures
+  -> baseline replay without candidate
+  -> candidate replay with candidate
+  -> paired metrics and bootstrap interval
+  -> policy gates
+  -> Ed25519-signed offline report
 
-The model is not trusted with policy, capability signing, evidence identity, lease ownership, secret materialization, or executor construction.
+production baseline Episodes
+  -> candidate counterfactual replay in shadow
+  -> paired non-regression gates
+  -> signed canary report
 
-The local host process is trusted. The Docker daemon, host kernel or Docker Desktop VM, approved image, and operator-managed network are part of the execution trusted computing base.
+signed offline + signed canary
+  -> SkillStore re-verification
+  -> explicit promotion
+```
+
+### Replay-world contract
+
+Baseline and candidate receive the same:
+
+- `TaskSpec`
+- requested tool descriptions
+- budgets
+- ordered recorded observations
+- evidence IDs and artifact provenance
+- verifier provider
+
+They differ only in the active Skill set. A model-proposed tool name or proposal-argument hash that differs from the fixture causes a trace-mismatch failure. The original normalized executed-argument hash remains in the evidence record and is checked during fixture capture.
+
+### Report contract
+
+A signed report includes the complete run-level data rather than only aggregate scores. It binds Skill identity, fixture hashes, policy, results, decision gates, engine version, provider identity, payload hash, signature, and public-key fingerprint.
+
+## 5. Production control loop
+
+```text
+promoted Skill used by Episode
+  -> terminal production outcome
+  -> rolling window
+  -> compare with signed canary candidate envelope
+  -> signed monitor report
+  -> remain promoted or automatic rollback
+```
+
+The monitor is deliberately asymmetric: it may revoke authority automatically, but it never promotes authority automatically.
+
+## State boundaries
+
+```text
+Task workspace
+  mounted into executor
+  may be read-only or explicitly read-write
+
+Authority state
+  capability key
+  ledger and evidence
+  checkpoints and memory
+  Skills and training provenance
+  evaluation fixtures and reports
+  Ed25519 evaluation key
+  leases and secret materialization
+  never mounted as the task workspace
+```
+
+## Main invariants
+
+1. No protected tool executes without exact approval and a valid capability.
+2. No final factual claim may cite evidence absent from the current Episode.
+3. No clean fixture exists without source checkpoint, ledger, and artifact agreement.
+4. No candidate is evaluated on its supporting Episodes.
+5. No offline comparison is accepted without complete paired runs.
+6. No promotion succeeds without two verified passing reports from one authority.
+7. No shadow candidate output reaches the production response path.
+8. No production regression keeps authority merely because the Skill was previously promoted.
+9. No process execution silently falls back from Docker to the host.
+10. No concurrent process owns the same Episode lease.

@@ -74,7 +74,7 @@ export interface MemoryRecord {
   createdAt: string;
 }
 
-export type SkillStatus = "candidate" | "evaluated" | "canary" | "promoted" | "rolled_back";
+export type SkillStatus = "candidate" | "evaluated" | "canary" | "promoted" | "quarantined" | "rolled_back";
 
 export interface SkillStep {
   toolName: string;
@@ -96,6 +96,21 @@ export interface SkillCanary {
   note: string;
 }
 
+export interface SkillPromotionRecord {
+  at: string;
+  offlineReportId: string;
+  canaryReportId: string;
+  policyHash: string;
+  keyFingerprint: string;
+}
+
+export interface SkillRollbackRecord {
+  at: string;
+  reason: string;
+  automatic: boolean;
+  reportId?: string;
+}
+
 export interface SkillRecord {
   id: string;
   fingerprint: string;
@@ -111,6 +126,10 @@ export interface SkillRecord {
   updatedAt: string;
   evaluations: SkillEvaluation[];
   canaries: SkillCanary[];
+  evaluationReportIds: string[];
+  canaryReportIds: string[];
+  promotion?: SkillPromotionRecord;
+  rollback?: SkillRollbackRecord;
 }
 
 export interface EpisodeCheckpoint {
@@ -127,11 +146,13 @@ export interface EpisodeCheckpoint {
   }>;
   evidenceIds: string[];
   toolSequence: string[];
+  activeSkillIds: string[];
   usage: Usage;
   turns: number;
   toolCalls: number;
   elapsedMs: number;
   answer?: string;
+  finalScore?: number;
   stopReason?: string;
   updatedAt: string;
 }

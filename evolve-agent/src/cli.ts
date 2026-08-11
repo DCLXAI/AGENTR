@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import { readFile } from "node:fs/promises";
 import { loadConfig } from "./config.js";
 import { createRuntime } from "./factory.js";
+import type { FixtureSplit, ShadowObservation } from "./evaluation/types.js";
 
 interface ParsedArgs {
   positionals: string[];
@@ -47,8 +49,19 @@ function numeric(parsed: ParsedArgs, key: string): number | undefined {
   return parsedNumber;
 }
 
+function fixtureSplits(parsed: ParsedArgs): FixtureSplit[] | undefined {
+  const requested = values(parsed, "split");
+  if (requested.length === 0) return undefined;
+  for (const split of requested) {
+    if (split !== "train" && split !== "validation" && split !== "holdout") {
+      throw new Error(`Unknown fixture split: ${split}`);
+    }
+  }
+  return requested as FixtureSplit[];
+}
+
 function help(): void {
-  console.log(`Evolve Agent 0.2.0 — Hardened Execution
+  console.log(`Evolve Agent 0.3.0 — Evaluation-Driven Evolution
 
 Usage:
   evolve-agent run <goal> [--workspace path] [--tool name ...] [--constraint text ...] [--success text ...]
@@ -56,27 +69,40 @@ Usage:
   evolve-agent doctor [--executor docker|local] [--allow-local-executor]
   evolve-agent executors list
   evolve-agent secrets sweep
-  evolve-agent ledger verify [--home path]
-  evolve-agent skills list [--home path]
-  evolve-agent skills evaluate <skill-id> [--home path]
-  evolve-agent skills canary <skill-id> --score 0.9 --note text --passed [--home path]
-  evolve-agent skills promote <skill-id> [--home path]
-  evolve-agent skills rollback <skill-id> --note reason [--home path]
+  evolve-agent ledger verify
 
-Hardened defaults:
-  - GPT model: gpt-5.6-sol
-  - Docker executor, sha256-pinned image allowlist, --pull never
-  - network=none, read-only workspace, read-only root, dropped capabilities
-  - CPU, memory, PID, tmpfs, timeout, and output limits
-  - short-lived file secrets with output redaction
-  - exact human approval for protected actions
-  - episode lease with stale-lock recovery
-  - local execution is disabled unless --allow-local-executor or EVOLVE_ALLOW_LOCAL_EXECUTOR=true is set.`);
+Evaluation fixtures:
+  evolve-agent evaluations fixtures capture <episode-id> [--split train|validation|holdout]
+  evolve-agent evaluations fixtures import <path>
+  evolve-agent evaluations fixtures list [--split validation --split holdout]
+
+Counterfactual evaluation:
+  evolve-agent evaluations run <skill-id> [--fixture id ...] [--split validation --split holdout] [--repeats N]
+  evolve-agent evaluations shadow <skill-id> <episode-id> [--mode production-baseline|production-candidate]
+  evolve-agent evaluations canary <skill-id>
+  evolve-agent evaluations monitor <skill-id>
+  evolve-agent evaluations reports list
+  evolve-agent evaluations reports show <report-id>
+  evolve-agent evaluations verify <report-id>
+
+Skill lifecycle:
+  evolve-agent skills list
+  evolve-agent skills evaluate <skill-id> [evaluation selection options]
+  evolve-agent skills promote <skill-id>
+  evolve-agent skills rollback <skill-id> --note reason
+
+Evolution invariants:
+  - supporting Episodes are excluded from evaluation fixtures
+  - baseline and candidate receive the same replay trace, tools, budgets, and verifier
+  - signed offline and shadow-canary reports are required for explicit promotion
+  - candidate Skills never alter production answers during shadow evaluation
+  - promoted Skills are automatically rolled back when the production window breaches the signed canary envelope
+  - Docker remains the default fail-closed execution boundary from v0.2`);
 }
 
 async function main(): Promise<void> {
   const parsed = parseArgs(process.argv.slice(2));
-  const [command, subcommand, third] = parsed.positionals;
+  const [command, subcommand, third, fourth] = parsed.positionals;
   if (!command || command === "help" || parsed.flags.has("help")) {
     help();
     return;
@@ -104,7 +130,7 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           ok,
-          version: "0.2.0",
+          version: "0.3.0",
           model: config.model,
           verifier_model: config.verifierModel,
           workspace: config.workspace,
@@ -120,6 +146,17 @@ async function main(): Promise<void> {
             non_root_user: config.docker.user,
             require_rootless: config.docker.requireRootless,
             maximums: config.docker.maximums,
+          },
+          evaluation: {
+            capture_committed: config.evaluation.captureCommitted,
+            shadow_percent: config.evaluation.shadowPercent,
+            monitor_promoted: config.evaluation.monitorPromoted,
+            canary_min_samples: config.evaluation.canaryMinSamples,
+            monitor_min_samples: config.evaluation.monitorMinSamples,
+            monitor_window: config.evaluation.monitorWindow,
+            policy: config.evaluation.policy,
+            fixtures: (await bundle.fixtures.list()).length,
+            reports: (await bundle.reports.list()).length,
           },
           secret_allowlist: bundle.secrets.allowedNames(),
           expired_secret_leases_removed: expiredSecretsRemoved,
@@ -139,16 +176,7 @@ async function main(): Promise<void> {
   }
 
   if (command === "executors" && subcommand === "list") {
-    console.log(
-      JSON.stringify(
-        {
-          default: bundle.executors.getDefaultKind(),
-          probes: await bundle.executors.probeAll(),
-        },
-        null,
-        2,
-      ),
-    );
+    console.log(JSON.stringify({ default: bundle.executors.getDefaultKind(), probes: await bundle.executors.probeAll() }, null, 2));
     return;
   }
 
@@ -193,15 +221,48 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (command === "skills" && subcommand === "list") {
-    console.log(JSON.stringify(await bundle.skills.list(), null, 2));
+  if (command === "evaluations" && subcommand === "fixtures" && third === "capture" && fourth) {
+    const split = fixtureSplits(parsed)?.[0];
+    console.log(JSON.stringify(await bundle.fixtures.capture(fourth, split), null, 2));
     return;
   }
 
-  if (command === "skills" && subcommand === "evaluate" && third) {
+  if (command === "evaluations" && subcommand === "fixtures" && third === "import" && fourth) {
+    const fixture = JSON.parse(await readFile(fourth, "utf8")) as unknown;
+    console.log(JSON.stringify(await bundle.fixtures.import(fixture), null, 2));
+    return;
+  }
+
+  if (command === "evaluations" && subcommand === "fixtures" && third === "list") {
+    const splits = fixtureSplits(parsed);
+    console.log(JSON.stringify(await bundle.fixtures.list(splits ? new Set(splits) : undefined), null, 2));
+    return;
+  }
+
+  if ((command === "evaluations" && subcommand === "run" && third) || (command === "skills" && subcommand === "evaluate" && third)) {
+    const skillId = third as string;
+    const report = await bundle.evaluations.evaluateSkill(skillId, {
+      ...(values(parsed, "fixture").length > 0 ? { fixtures: values(parsed, "fixture") } : {}),
+      ...(fixtureSplits(parsed) ? { splits: fixtureSplits(parsed) as FixtureSplit[] } : {}),
+      ...(numeric(parsed, "repeats") !== undefined ? { repeats: Math.floor(numeric(parsed, "repeats") as number) } : {}),
+    });
+    console.log(JSON.stringify(report, null, 2));
+    process.exitCode = report.payload.decision.passed ? 0 : 1;
+    return;
+  }
+
+  if (command === "evaluations" && subcommand === "shadow" && third && fourth) {
+    const mode = value(parsed, "mode");
+    if (mode !== undefined && mode !== "production-baseline" && mode !== "production-candidate") {
+      throw new Error(`Invalid shadow mode: ${mode}`);
+    }
     console.log(
       JSON.stringify(
-        await bundle.skills.evaluate(third, new Set(bundle.tools.modelDescriptions().map((tool) => tool.name))),
+        await bundle.evaluations.shadowEpisode(
+          third,
+          fourth,
+          mode as ShadowObservation["mode"] | undefined,
+        ),
         null,
         2,
       ),
@@ -209,16 +270,42 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (command === "skills" && subcommand === "canary" && third) {
-    const score = numeric(parsed, "score");
-    const note = value(parsed, "note");
-    if (score === undefined || !note) throw new Error("canary requires --score and --note");
-    console.log(JSON.stringify(await bundle.skills.recordCanary(third, parsed.flags.has("passed"), score, note), null, 2));
+  if (command === "evaluations" && subcommand === "canary" && third) {
+    const report = await bundle.evaluations.finalizeCanary(third);
+    console.log(JSON.stringify(report, null, 2));
+    process.exitCode = report.payload.decision.passed ? 0 : 1;
+    return;
+  }
+
+  if (command === "evaluations" && subcommand === "monitor" && third) {
+    console.log(JSON.stringify((await bundle.evaluations.monitorSkill(third)) ?? { status: "insufficient_samples" }, null, 2));
+    return;
+  }
+
+  if (command === "evaluations" && subcommand === "reports" && third === "list") {
+    console.log(JSON.stringify(await bundle.reports.list(), null, 2));
+    return;
+  }
+
+  if (command === "evaluations" && subcommand === "reports" && third === "show" && fourth) {
+    console.log(JSON.stringify(await bundle.reports.get(fourth), null, 2));
+    return;
+  }
+
+  if (command === "evaluations" && subcommand === "verify" && third) {
+    const valid = await bundle.evaluations.verifyReport(third);
+    console.log(JSON.stringify({ report_id: third, valid }, null, 2));
+    process.exitCode = valid ? 0 : 1;
+    return;
+  }
+
+  if (command === "skills" && subcommand === "list") {
+    console.log(JSON.stringify(await bundle.skills.list(), null, 2));
     return;
   }
 
   if (command === "skills" && subcommand === "promote" && third) {
-    console.log(JSON.stringify(await bundle.skills.promote(third), null, 2));
+    console.log(JSON.stringify(await bundle.evaluations.promoteSkill(third), null, 2));
     return;
   }
 

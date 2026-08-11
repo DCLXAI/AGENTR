@@ -26,6 +26,10 @@ test("hardened execution is Docker-first and local execution is explicit", async
       () => loadConfig({ workspace: path.join(root, "unsafe"), home: path.join(root, "unsafe", ".evolve") }),
       /EVOLVE_HOME must be outside EVOLVE_WORKSPACE/,
     );
+    assert.throws(
+      () => loadConfig({ evaluation: { canaryMinSamples: 10, monitorWindow: 5 } }),
+      /EVOLVE_EVAL_MONITOR_WINDOW/,
+    );
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -2,6 +2,7 @@ export {
   loadConfig,
   type ConfigOverrides,
   type DockerConfig,
+  type EvaluationConfig,
   type EvolveConfig,
   type ReasoningEffort,
 } from "./config.js";
@@ -36,4 +37,30 @@ export type {
   VerificationVerdict,
 } from "./providers/provider.js";
 export { StaticApprover, InteractiveApprover, type Approver } from "./policy/approver.js";
+export { FixtureStore } from "./evaluation/fixture-store.js";
+export { ReplayHarness } from "./evaluation/replay-harness.js";
+export { EvaluationEngine, type EvaluationEngineOptions } from "./evaluation/evaluation-engine.js";
+export { EvaluationReportStore } from "./evaluation/report-store.js";
+export { ProvenanceSigner } from "./evaluation/provenance-signer.js";
+export { ShadowStore } from "./evaluation/shadow-store.js";
+export { EvolutionOrchestrator, type EvolutionOrchestratorOptions } from "./evaluation/evolution-orchestrator.js";
+export { aggregateRuns, compareRuns, defaultEvaluationPolicy } from "./evaluation/metrics.js";
+export type {
+  EvaluationAggregate,
+  EvaluationArm,
+  EvaluationComparison,
+  EvaluationDecision,
+  EvaluationPolicy,
+  EvaluationReportKind,
+  EvaluationReportPayload,
+  FixtureSplit,
+  ProductionOutcome,
+  PromotionAuthorization,
+  ReplayFixture,
+  ReplayFixturePayload,
+  ReplayRunResult,
+  ReplayTraceStep,
+  ShadowObservation,
+  SignedEvaluationReport,
+} from "./evaluation/types.js";
 export type { RunResult, TaskBudget, TaskInput, TaskSpec } from "./core/types.js";

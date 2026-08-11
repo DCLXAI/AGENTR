@@ -1,7 +1,7 @@
 {
   "name": "@dclxai/evolve-agent",
-  "version": "0.2.0",
-  "description": "Evidence-gated autonomous agent runtime with hardened Docker execution for GPT-5.6 Sol",
+  "version": "0.3.0",
+  "description": "Evidence-gated GPT-5.6 Sol agent runtime with hardened execution and signed evaluation-driven Skill evolution",
   "type": "module",
   "bin": {
     "evolve-agent": "./dist/cli.js"
